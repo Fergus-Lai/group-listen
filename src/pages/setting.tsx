@@ -4,9 +4,11 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faRightToBracket } from "@fortawesome/free-solid-svg-icons";
 import { signOut, useSession } from "next-auth/react";
 import { useRouter } from "next/router";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import LogOutModal from "~/components/logOutModal";
+import { AnimatePresence } from "framer-motion";
 
 // TODO: Implement Delete Account
 const deleteAccount: () => void = () => {
@@ -16,6 +18,8 @@ const deleteAccount: () => void = () => {
 const Setting: NextPage = () => {
   const { data: sessionData } = useSession();
   const router = useRouter();
+  const [logOutModalOpen, setLogOutModalOpen] = useState(false);
+
   useEffect(() => {
     if (!sessionData) void router.push("/");
   });
@@ -29,6 +33,13 @@ const Setting: NextPage = () => {
       </Head>
       <main className="flex min-h-screen flex-col items-center gap-2 bg-slate-800 py-8 text-white">
         <ToastContainer theme="dark" />
+        <AnimatePresence initial={false} mode="sync">
+          {logOutModalOpen && (
+            <LogOutModal
+              closeHandler={() => void setLogOutModalOpen(false)}
+            ></LogOutModal>
+          )}
+        </AnimatePresence>
         {sessionData && (
           <>
             <div className="w-2/3 text-lg font-semibold">Social Setting</div>
@@ -36,7 +47,7 @@ const Setting: NextPage = () => {
             <div className="flex w-2/3 gap-2">
               <button
                 className="flex w-32 flex-row items-center justify-between rounded-lg border-2 border-red-500 p-2 hover:bg-red-500"
-                onClick={() => void signOut()}
+                onClick={() => void setLogOutModalOpen(true)}
               >
                 Log Out
                 <FontAwesomeIcon icon={faRightToBracket} className="w-4" />
