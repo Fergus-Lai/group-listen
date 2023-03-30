@@ -20,6 +20,8 @@ const NavButton: React.FC<props> = (props) => {
           initial={{ opacity: 0, y: closedY }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: closedY }}
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.9 }}
         >
           <Link href={href}>
             <FontAwesomeIcon icon={icon} className="h-8 w-8 text-white" />

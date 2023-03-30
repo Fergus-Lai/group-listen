@@ -37,11 +37,13 @@ const Home: NextPage = () => {
             icon={faAdd}
             href="/setting"
           />
-          <button
+          <motion.button
             className="flex h-16 w-16 items-center justify-center rounded-full bg-slate-900"
             onClick={() => {
               setMenuOpen(!menuOpen);
             }}
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
           >
             <Hamburger
               toggled={menuOpen}
@@ -49,7 +51,7 @@ const Home: NextPage = () => {
               direction="right"
               color="white"
             />
-          </button>
+          </motion.button>
         </div>
 
         <div className="container flex flex-col items-center justify-center gap-12 px-4 py-16 "></div>
