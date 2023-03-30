@@ -1,14 +1,18 @@
 import { type NextPage } from "next";
 import Head from "next/head";
+import Link from "next/link";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faRightToBracket } from "@fortawesome/free-solid-svg-icons";
+import {
+  faRightToBracket,
+  faArrowLeft,
+} from "@fortawesome/free-solid-svg-icons";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import LogOutModal from "~/components/logOutModal";
-import { AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 
 // TODO: Implement Delete Account
 const deleteAccount: () => void = () => {
@@ -31,6 +35,14 @@ const Setting: NextPage = () => {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <main className="flex min-h-screen flex-col items-center gap-2 bg-slate-800 py-8 text-white">
+        <div className="flex w-2/3 flex-row items-center gap-2 text-left text-xl font-bold">
+          <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
+            <Link href="/">
+              <FontAwesomeIcon icon={faArrowLeft} className="w-4" />
+            </Link>
+          </motion.div>
+          Setting
+        </div>
         <ToastContainer theme="dark" />
         <AnimatePresence initial={false} mode="sync">
           {logOutModalOpen && (
