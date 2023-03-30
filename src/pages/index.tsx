@@ -1,14 +1,16 @@
 import { type NextPage } from "next";
 import Head from "next/head";
-import Link from "next/link";
 import { signIn, signOut, useSession } from "next-auth/react";
 import { useState } from "react";
 import { Spin as Hamburger } from "hamburger-react";
 import { api } from "~/utils/api";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faGear, faAdd } from "@fortawesome/free-solid-svg-icons";
+import {
+  faGear,
+  faAdd,
+  faRightToBracket,
+} from "@fortawesome/free-solid-svg-icons";
 import { motion } from "framer-motion";
-import NavButton from "~/components/navButton";
+import { NavLink, NavButton } from "~/components/navButton";
 
 const Home: NextPage = () => {
   const { data: sessionData } = useSession();
@@ -25,13 +27,23 @@ const Home: NextPage = () => {
         <div className=""></div>
 
         <div className="absolute left-8 bottom-8 flex flex-col gap-4">
-          <NavButton
-            menuOpen={menuOpen}
-            closedY={150}
-            icon={faGear}
-            href="/setting"
-          />
-          <NavButton
+          {sessionData ? (
+            <NavLink
+              menuOpen={menuOpen}
+              closedY={150}
+              icon={faGear}
+              href="/setting"
+            />
+          ) : (
+            <NavButton
+              menuOpen={menuOpen}
+              closedY={150}
+              icon={faRightToBracket}
+              onClick={() => void signIn()}
+            />
+          )}
+
+          <NavLink
             menuOpen={menuOpen}
             closedY={80}
             icon={faAdd}
@@ -55,34 +67,9 @@ const Home: NextPage = () => {
         </div>
 
         <div className="container flex flex-col items-center justify-center gap-12 px-4 py-16 "></div>
-        <AuthShowcase />
       </main>
     </>
   );
 };
 
 export default Home;
-
-const AuthShowcase: React.FC = () => {
-  const { data: sessionData } = useSession();
-
-  const { data: secretMessage } = api.example.getSecretMessage.useQuery(
-    undefined, // no input
-    { enabled: sessionData?.user !== undefined }
-  );
-
-  return (
-    <div className="flex flex-col items-center justify-center gap-4">
-      <p className="text-center text-2xl text-white">
-        {sessionData && <span>Logged in as {sessionData.user?.name}</span>}
-        {secretMessage && <span> - {secretMessage}</span>}
-      </p>
-      <button
-        className="rounded-full bg-white/10 px-10 py-3 font-semibold text-white no-underline transition hover:bg-white/20"
-        onClick={sessionData ? () => void signOut() : () => void signIn()}
-      >
-        {sessionData ? "Sign out" : "Sign in"}
-      </button>
-    </div>
-  );
-};
