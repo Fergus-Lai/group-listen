@@ -2,7 +2,7 @@ import { type NextPage } from "next";
 import Head from "next/head";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faRightToBracket } from "@fortawesome/free-solid-svg-icons";
-import { signOut, useSession } from "next-auth/react";
+import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { ToastContainer, toast } from "react-toastify";
@@ -19,7 +19,6 @@ const Setting: NextPage = () => {
   const { data: sessionData } = useSession();
   const router = useRouter();
   const [logOutModalOpen, setLogOutModalOpen] = useState(false);
-
   useEffect(() => {
     if (!sessionData) void router.push("/");
   });
@@ -42,7 +41,6 @@ const Setting: NextPage = () => {
         </AnimatePresence>
         {sessionData && (
           <>
-            <div className="w-2/3 text-lg font-semibold">Social Setting</div>
             <div className="w-2/3 text-lg font-semibold">Account Setting</div>
             <div className="flex w-2/3 gap-2">
               <button

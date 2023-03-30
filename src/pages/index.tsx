@@ -1,9 +1,8 @@
 import { type NextPage } from "next";
 import Head from "next/head";
-import { signIn, signOut, useSession } from "next-auth/react";
+import { signIn, useSession } from "next-auth/react";
 import { useState } from "react";
 import { Spin as Hamburger } from "hamburger-react";
-import { api } from "~/utils/api";
 import {
   faGear,
   faAdd,
