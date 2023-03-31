@@ -46,7 +46,7 @@ const Home: NextPage = () => {
             menuOpen={menuOpen}
             closedY={80}
             icon={faAdd}
-            href="/setting"
+            href="/create"
           />
           <motion.button
             className="flex h-16 w-16 items-center justify-center rounded-full bg-slate-900"
