@@ -26,6 +26,12 @@ const config = {
         port: "",
         pathname: "/avatars/**",
       },
+      {
+        protocol: "https",
+        hostname: "**.googleusercontent.com",
+        port: "",
+        pathname: "/**",
+      },
     ],
   },
 };
