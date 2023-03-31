@@ -22,6 +22,7 @@ declare module "next-auth" {
     user: {
       id: string;
       discriminator: string | null | undefined;
+      displayTag: boolean;
       // ...other properties
       // role: UserRole;
     } & DefaultSession["user"];
@@ -29,6 +30,7 @@ declare module "next-auth" {
 
   interface User {
     discriminator: string | null | undefined;
+    displayTag: boolean;
     // ...other properties
     // role: UserRole;
   }
@@ -45,6 +47,7 @@ export const authOptions: NextAuthOptions = {
       if (session.user) {
         session.user.id = user.id;
         session.user.discriminator = user.discriminator;
+        session.user.displayTag = user.displayTag;
         // session.user.role = user.role; <-- put other properties on the session here
       }
       return session;
@@ -69,6 +72,7 @@ export const authOptions: NextAuthOptions = {
           email: profile.email,
           image: profile.image_url,
           discriminator: profile.discriminator,
+          displayTag: false,
         };
       },
     }),

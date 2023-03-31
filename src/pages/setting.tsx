@@ -13,6 +13,8 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import LogOutModal from "~/components/logOutModal";
 import { AnimatePresence, motion } from "framer-motion";
+import Switch from "react-switch";
+import { api } from "~/utils/api";
 
 // TODO: Implement Delete Account
 const deleteAccount: () => void = () => {
@@ -23,9 +25,15 @@ const Setting: NextPage = () => {
   const { data: sessionData } = useSession();
   const router = useRouter();
   const [logOutModalOpen, setLogOutModalOpen] = useState(false);
+  const [displayTag, setDisplayTag] = useState<boolean>(false);
+  const mutation = api.setting.updateDisplayTag.useMutation();
   useEffect(() => {
-    if (!sessionData) void router.push("/");
-  });
+    if (!sessionData) {
+      void router.push("/");
+      return;
+    }
+    setDisplayTag(sessionData.user.displayTag);
+  }, [sessionData]);
 
   return (
     <>
@@ -53,6 +61,17 @@ const Setting: NextPage = () => {
         </AnimatePresence>
         {sessionData && (
           <>
+            <div className="w-2/3 text-lg font-semibold">Social Setting</div>
+            <div className="flex w-2/3 flex-row justify-between">
+              Display Discord Tag
+              <Switch
+                onChange={() => {
+                  mutation.mutate({ displayTag: !displayTag });
+                  setDisplayTag(!displayTag);
+                }}
+                checked={displayTag}
+              />
+            </div>
             <div className="w-2/3 text-lg font-semibold">Account Setting</div>
             <div className="flex w-2/3 gap-2">
               <button
