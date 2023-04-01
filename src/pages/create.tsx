@@ -92,7 +92,7 @@ const Create: NextPage = () => {
               setResult([]);
             }}
           />
-          <button className="flex w-1/12 rounded-r-lg bg-white text-slate-500">
+          <button className="flex w-1/12 min-w-fit items-center justify-center rounded-r-lg bg-white text-slate-500">
             <FontAwesomeIcon icon={faSearch} className="w-4" />
           </button>
         </form>
