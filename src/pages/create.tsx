@@ -73,7 +73,7 @@ const Create: NextPage = () => {
         >
           <select
             name="searchType"
-            className="w-1/6 rounded-l-lg text-center text-black"
+            className="w-1/6 min-w-fit rounded-l-lg text-center text-black"
             value={searchType}
             onChange={(e) => {
               setSearchType(e.target.value);
@@ -85,7 +85,7 @@ const Create: NextPage = () => {
           </select>
           <input
             name="target"
-            className="w-full px-2 text-black focus:outline-none"
+            className="w-full rounded-none px-2 text-black focus:outline-none"
             value={searchTarget}
             onChange={(e) => {
               setSearchTarget(e.target.value);
