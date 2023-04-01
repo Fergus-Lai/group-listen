@@ -3,19 +3,21 @@ import Head from "next/head";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faArrowLeft, faSearch } from "@fortawesome/free-solid-svg-icons";
 import Link from "next/link";
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import Switch from "react-switch";
 import { useState } from "react";
 import { api } from "~/utils/api";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import VideoList from "~/components/videoRender/videoList";
+import VideoCard from "~/components/videoRender/videoCard";
+import { type MusicVideo } from "node-youtube-music";
 
 const Create: NextPage = () => {
   const [anonymousMode, setAnonymousMode] = useState(false);
   const [chat, setChat] = useState(false);
   const [searchType, setSearchType] = useState("Music");
   const [searchTarget, setSearchTarget] = useState("");
+  const [result, setResult] = useState<MusicVideo[]>([]);
   const search = api.youtube.search.useQuery(
     {
       target: searchTarget,
@@ -58,8 +60,14 @@ const Create: NextPage = () => {
           onSubmit={(e: React.FormEvent) => {
             e.preventDefault();
             toast("Search In Progress");
+            setResult([]);
             void search
               .refetch()
+              .then(({ data }) => {
+                data && data.length > 0
+                  ? setResult(data)
+                  : toast.error("No result");
+              })
               .catch((e) => void toast.error(JSON.stringify(e)));
           }}
         >
@@ -67,24 +75,36 @@ const Create: NextPage = () => {
             name="searchType"
             className="w-1/6 rounded-l-lg text-center text-black"
             value={searchType}
-            onChange={(e) => void setSearchType(e.target.value)}
+            onChange={(e) => {
+              setSearchType(e.target.value);
+              setResult([]);
+            }}
           >
-            <option>Music</option>
-            <option>Album</option>
-            <option>Artist</option>
+            <option>Search</option>
             <option>Url</option>
           </select>
           <input
             name="target"
             className="w-full px-2 text-black focus:outline-none"
             value={searchTarget}
-            onChange={(e) => setSearchTarget(e.target.value)}
+            onChange={(e) => {
+              setSearchTarget(e.target.value);
+              setResult([]);
+            }}
           />
           <button className="flex w-1/12 rounded-r-lg bg-white text-slate-500">
             <FontAwesomeIcon icon={faSearch} className="w-4" />
           </button>
         </form>
-        {search && search.data && <VideoList videos={search.data} />}
+        {result && (
+          <div className="flex w-2/3 flex-col gap-2">
+            <AnimatePresence initial={false} mode="wait">
+              {result.map((video, index) => (
+                <VideoCard video={video} key={index} />
+              ))}
+            </AnimatePresence>
+          </div>
+        )}
       </main>
     </>
   );

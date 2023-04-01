@@ -10,7 +10,8 @@ export const youtubeRouter = createTRPCRouter({
     .query(async ({ input }) => {
       switch (input.type) {
         case "Music":
-          return await searchMusics(input.target);
+          const result = await searchMusics(input.target);
+          return result;
         default:
           break;
       }

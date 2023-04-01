@@ -1,9 +1,16 @@
 import { type MusicVideo, type Artist } from "node-youtube-music";
 import Image from "next/image";
+import { motion } from "framer-motion";
 
 interface props {
   video: MusicVideo;
 }
+
+const slideIn = {
+  hidden: { x: "-100vh", opacity: 0 },
+  visible: { x: 0, opacity: 1 },
+  exit: { x: "100vh", opacity: 0 },
+};
 
 const VideoCard: React.FC<props> = (props) => {
   const artistString = (artists: Artist[]) => {
@@ -13,7 +20,12 @@ const VideoCard: React.FC<props> = (props) => {
   const { video } = props;
 
   return (
-    <div className="flex w-full flex-row gap-2">
+    <motion.div
+      initial={{ opacity: 0, x: "-100vh" }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: "100vh" }}
+      className="flex w-full flex-row gap-2 rounded-lg bg-slate-600 p-2"
+    >
       {video.thumbnailUrl && video.title && video.artists && (
         <>
           <Image
@@ -30,7 +42,7 @@ const VideoCard: React.FC<props> = (props) => {
           </div>
         </>
       )}
-    </div>
+    </motion.div>
   );
 };
 
