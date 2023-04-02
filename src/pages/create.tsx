@@ -55,7 +55,9 @@ const Create: NextPage = () => {
           Chat
           <Switch onChange={() => void setChat(!chat)} checked={chat} />
         </div>
-        <div>Search</div>
+        <div className="flex w-2/3 text-left font-semibold">
+          Search (Click To Add To Playlist)
+        </div>
         <form
           className="flex w-2/3 flex-row"
           onSubmit={(e: React.FormEvent) => {
@@ -92,13 +94,18 @@ const Create: NextPage = () => {
                 <VideoCard
                   video={video}
                   key={index}
-                  onClick={() =>
-                    void playlist.findIndex(
-                      (playlistVideo) => playlistVideo === video
-                    ) === -1
-                      ? setPlaylist([...playlist, video])
-                      : toast.error("Video already in playlist")
-                  }
+                  onClick={() => {
+                    if (
+                      playlist.findIndex(
+                        (playlistVideo) => playlistVideo === video
+                      ) === -1
+                    ) {
+                      setPlaylist([...playlist, video]);
+                      toast.success("Song added to playlist");
+                    } else {
+                      toast.error("Song already in playlist");
+                    }
+                  }}
                 />
               ))}
             </AnimatePresence>

@@ -7,12 +7,6 @@ interface props {
   onClick: () => void;
 }
 
-const slideIn = {
-  hidden: { x: "-100vh", opacity: 0 },
-  visible: { x: 0, opacity: 1 },
-  exit: { x: "100vh", opacity: 0 },
-};
-
 const VideoCard: React.FC<props> = ({ video, onClick }) => {
   const artistString = (artists: Artist[]) => {
     return artists.map((artist) => artist.name).join(", ");
@@ -23,6 +17,8 @@ const VideoCard: React.FC<props> = ({ video, onClick }) => {
       initial={{ opacity: 0, x: "-100vh" }}
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: "100vh" }}
+      whileHover={{ scale: 1.1 }}
+      whileTap={{ scale: 0.9 }}
       className="flex w-full flex-row gap-2 rounded-lg bg-slate-600 p-2"
       onClick={onClick}
     >

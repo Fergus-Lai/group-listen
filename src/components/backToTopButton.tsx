@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faArrowsUpToLine } from "@fortawesome/free-solid-svg-icons";
+import { faAnglesUp } from "@fortawesome/free-solid-svg-icons";
 
 const BackToTopButton: React.FC = () => {
   return (
@@ -10,7 +10,7 @@ const BackToTopButton: React.FC = () => {
       whileTap={{ scale: 0.9 }}
       onClick={() => void window.scrollTo({ top: 0, behavior: "smooth" })}
     >
-      <FontAwesomeIcon icon={faArrowsUpToLine} className="h-8 w-8 text-white" />
+      <FontAwesomeIcon icon={faAnglesUp} className="h-8 w-8 text-white" />
     </motion.button>
   );
 };
