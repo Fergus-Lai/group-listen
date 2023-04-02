@@ -27,27 +27,29 @@ const Home: NextPage = () => {
 
         <div className="absolute left-8 bottom-8 flex flex-col gap-4">
           {sessionData ? (
-            <NavLink
-              menuOpen={menuOpen}
-              closedY={150}
-              icon={faGear}
-              href="/setting"
-            />
+            <>
+              <NavLink
+                menuOpen={menuOpen}
+                closedY={150}
+                icon={faGear}
+                href="/setting"
+              />
+              <NavLink
+                menuOpen={menuOpen}
+                closedY={80}
+                icon={faAdd}
+                href="/create"
+              />
+            </>
           ) : (
             <NavButton
               menuOpen={menuOpen}
-              closedY={150}
+              closedY={80}
               icon={faRightToBracket}
               onClick={() => void signIn()}
             />
           )}
 
-          <NavLink
-            menuOpen={menuOpen}
-            closedY={80}
-            icon={faAdd}
-            href="/create"
-          />
           <motion.button
             className="flex h-16 w-16 items-center justify-center rounded-full bg-slate-900"
             onClick={() => {
