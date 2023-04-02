@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 
 interface props {
   video: MusicVideo;
+  onClick: () => void;
 }
 
 const slideIn = {
@@ -12,19 +13,18 @@ const slideIn = {
   exit: { x: "100vh", opacity: 0 },
 };
 
-const VideoCard: React.FC<props> = (props) => {
+const VideoCard: React.FC<props> = ({ video, onClick }) => {
   const artistString = (artists: Artist[]) => {
     return artists.map((artist) => artist.name).join(", ");
   };
 
-  const { video } = props;
-
   return (
-    <motion.div
+    <motion.button
       initial={{ opacity: 0, x: "-100vh" }}
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: "100vh" }}
       className="flex w-full flex-row gap-2 rounded-lg bg-slate-600 p-2"
+      onClick={onClick}
     >
       {video.thumbnailUrl && video.title && video.artists && (
         <>
@@ -35,14 +35,14 @@ const VideoCard: React.FC<props> = (props) => {
             height={80}
           />
           <div className="flex w-full flex-col">
-            <p className="text-lg">{video.title}</p>
-            <p className="text-sm text-slate-300">
+            <p className="text-left text-lg">{video.title}</p>
+            <p className="text-left text-sm text-slate-300">
               {artistString(video.artists)}
             </p>
           </div>
         </>
       )}
-    </motion.div>
+    </motion.button>
   );
 };
 

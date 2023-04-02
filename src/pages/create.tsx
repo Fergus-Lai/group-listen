@@ -11,12 +11,14 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import VideoCard from "~/components/videoRender/videoCard";
 import { type MusicVideo } from "node-youtube-music";
+import BackToTopButton from "~/components/backToTopButton";
 
 const Create: NextPage = () => {
   const [anonymousMode, setAnonymousMode] = useState(false);
   const [chat, setChat] = useState(false);
   const [searchTarget, setSearchTarget] = useState("");
   const [result, setResult] = useState<MusicVideo[]>([]);
+  const [playlist, setPlaylist] = useState<MusicVideo[]>([]);
   const search = api.youtube.search.useQuery(
     {
       target: searchTarget,
@@ -32,6 +34,7 @@ const Create: NextPage = () => {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <main className="flex min-h-screen flex-col items-center gap-2 bg-slate-800 py-8 text-white">
+        <BackToTopButton />
         <ToastContainer theme="dark" />
         <div className="flex w-2/3 flex-row items-center gap-2 text-left text-xl font-bold">
           <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
@@ -86,7 +89,17 @@ const Create: NextPage = () => {
           <div className="flex w-2/3 flex-col gap-2">
             <AnimatePresence initial={false} mode="wait">
               {result.map((video, index) => (
-                <VideoCard video={video} key={index} />
+                <VideoCard
+                  video={video}
+                  key={index}
+                  onClick={() =>
+                    void playlist.findIndex(
+                      (playlistVideo) => playlistVideo === video
+                    ) === -1
+                      ? setPlaylist([...playlist, video])
+                      : toast.error("Video already in playlist")
+                  }
+                />
               ))}
             </AnimatePresence>
           </div>
