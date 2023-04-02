@@ -13,19 +13,22 @@ import VideoCard from "~/components/videoRender/videoCard";
 import { type MusicVideo } from "node-youtube-music";
 import BackToTopButton from "~/components/backToTopButton";
 import PlaylistCard from "~/components/playlistRender/playlistCard";
+import { type Song } from "~/interfaces/song";
 
 const Create: NextPage = () => {
-  const [anonymousMode, setAnonymousMode] = useState(false);
+  const [anonymous, setAnonymous] = useState(false);
   const [chat, setChat] = useState(false);
   const [searchTarget, setSearchTarget] = useState("");
   const [result, setResult] = useState<MusicVideo[]>([]);
-  const [playlist, setPlaylist] = useState<MusicVideo[]>([]);
+  const [playlist, setPlaylist] = useState<Song[]>([]);
   const search = api.youtube.search.useQuery(
     {
       target: searchTarget,
     },
     { enabled: false }
   );
+
+  const { mutate: createRoom } = api.room.create.useMutation();
 
   useEffect(() => {
     console.log(playlist);
@@ -52,8 +55,8 @@ const Create: NextPage = () => {
         <div className="flex w-2/3 flex-row justify-between">
           Anonymous mode
           <Switch
-            onChange={() => void setAnonymousMode(!anonymousMode)}
-            checked={anonymousMode}
+            onChange={() => void setAnonymous(!anonymous)}
+            checked={anonymous}
           />
         </div>
         <div className="flex w-2/3 flex-row justify-between">
@@ -78,6 +81,16 @@ const Create: NextPage = () => {
             ))}
           </AnimatePresence>
         </Reorder.Group>
+        <div className="flex w-2/3 justify-end ">
+          <motion.button
+            className="rounded-lg bg-slate-500 p-2 hover:bg-slate-700"
+            onClick={() => {
+              createRoom({ playlist, anonymous, chat });
+            }}
+          >
+            Create
+          </motion.button>
+        </div>
         <div className="flex w-2/3 text-left font-semibold">
           Search (Click To Add To Playlist)
         </div>
@@ -119,11 +132,24 @@ const Create: NextPage = () => {
                   key={index}
                   onClick={() => {
                     if (
+                      !video.artists ||
+                      !video.thumbnailUrl ||
+                      !video.title ||
+                      !video.youtubeId
+                    )
+                      return;
+                    const localVideo = {
+                      thumbnailUrl: video.thumbnailUrl,
+                      title: video.title,
+                      youtubeId: video.youtubeId,
+                      artists: video.artists.map((artist) => artist.name),
+                    };
+                    if (
                       playlist.findIndex(
-                        (playlistVideo) => playlistVideo === video
+                        (playlistVideo) => playlistVideo === localVideo
                       ) === -1
                     ) {
-                      setPlaylist([...playlist, video]);
+                      setPlaylist([...playlist, localVideo]);
                       toast.success("Song added to playlist");
                     } else {
                       toast.error("Song already in playlist");

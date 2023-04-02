@@ -55,6 +55,10 @@ model User {
     displayTag    Boolean   @default(false)
     accounts      Account[]
     sessions      Session[]
+    roomId        String?
+    room          Room? @relation(fields: [roomId], references:[id])
+
+    @@index([roomId])
 }
 
 model VerificationToken {
@@ -63,4 +67,26 @@ model VerificationToken {
     expires    DateTime
 
     @@unique([identifier, token])
+}
+
+model Room {
+    id String @id
+    createdAt DateTime @default(now())
+    ownerId String
+    users User[]
+    playlist Song[] 
+    anonymous Boolean
+    chat Boolean
+}
+
+model Song {
+    id String @id @default(cuid())
+    youtubeId String
+    title String
+    artist String
+    thumbnail String
+    roomId String
+    room Room @relation(fields: [roomId], references: [id])
+
+    @@index([roomId])
 }

@@ -1,17 +1,17 @@
-import { type MusicVideo, type Artist } from "node-youtube-music";
 import Image from "next/image";
 import { Reorder, motion } from "framer-motion";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTrash } from "@fortawesome/free-solid-svg-icons";
+import { type Song } from "~/interfaces/song";
 
 interface props {
-  video: MusicVideo;
+  video: Song;
   removeSong: () => void;
 }
 
 const PlaylistCard: React.FC<props> = ({ video, removeSong }) => {
-  const artistString = (artists: Artist[]) => {
-    return artists.map((artist) => artist.name).join(", ");
+  const artistString = (artists: string[]) => {
+    return artists.join(", ");
   };
 
   return (
