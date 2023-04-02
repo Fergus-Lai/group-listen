@@ -3,15 +3,16 @@ import Head from "next/head";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faArrowLeft, faSearch } from "@fortawesome/free-solid-svg-icons";
 import Link from "next/link";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, Reorder, motion } from "framer-motion";
 import Switch from "react-switch";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { api } from "~/utils/api";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import VideoCard from "~/components/videoRender/videoCard";
 import { type MusicVideo } from "node-youtube-music";
 import BackToTopButton from "~/components/backToTopButton";
+import PlaylistCard from "~/components/playlistRender/playlistCard";
 
 const Create: NextPage = () => {
   const [anonymousMode, setAnonymousMode] = useState(false);
@@ -25,6 +26,10 @@ const Create: NextPage = () => {
     },
     { enabled: false }
   );
+
+  useEffect(() => {
+    console.log(playlist);
+  }, [playlist]);
 
   return (
     <>
@@ -55,6 +60,24 @@ const Create: NextPage = () => {
           Chat
           <Switch onChange={() => void setChat(!chat)} checked={chat} />
         </div>
+        <div className="flex w-2/3 text-left font-semibold">Playlist</div>
+        <Reorder.Group
+          values={playlist}
+          onReorder={setPlaylist}
+          className="max-h-[25vh] min-h-0 w-2/3 overflow-x-hidden overflow-y-scroll"
+        >
+          <AnimatePresence>
+            {playlist.map((video) => (
+              <PlaylistCard
+                key={video.youtubeId}
+                video={video}
+                removeSong={() =>
+                  void setPlaylist(playlist.filter((music) => music !== video))
+                }
+              />
+            ))}
+          </AnimatePresence>
+        </Reorder.Group>
         <div className="flex w-2/3 text-left font-semibold">
           Search (Click To Add To Playlist)
         </div>
