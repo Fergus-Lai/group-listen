@@ -15,13 +15,11 @@ import { type MusicVideo } from "node-youtube-music";
 const Create: NextPage = () => {
   const [anonymousMode, setAnonymousMode] = useState(false);
   const [chat, setChat] = useState(false);
-  const [searchType, setSearchType] = useState("Music");
   const [searchTarget, setSearchTarget] = useState("");
   const [result, setResult] = useState<MusicVideo[]>([]);
   const search = api.youtube.search.useQuery(
     {
       target: searchTarget,
-      type: searchType,
     },
     { enabled: false }
   );
@@ -71,21 +69,9 @@ const Create: NextPage = () => {
               .catch((e) => void toast.error(JSON.stringify(e)));
           }}
         >
-          <select
-            name="searchType"
-            className="w-1/6 min-w-fit rounded-l-lg text-center text-black"
-            value={searchType}
-            onChange={(e) => {
-              setSearchType(e.target.value);
-              setResult([]);
-            }}
-          >
-            <option>Search</option>
-            <option>Url</option>
-          </select>
           <input
             name="target"
-            className="w-full rounded-none px-2 text-black focus:outline-none"
+            className="w-full rounded-l-lg px-2 text-black focus:outline-none"
             value={searchTarget}
             onChange={(e) => {
               setSearchTarget(e.target.value);

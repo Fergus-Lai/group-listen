@@ -6,14 +6,8 @@ import { searchMusics } from "node-youtube-music";
 
 export const youtubeRouter = createTRPCRouter({
   search: publicProcedure
-    .input(z.object({ target: z.string(), type: z.string() }))
+    .input(z.object({ target: z.string() }))
     .query(async ({ input }) => {
-      switch (input.type) {
-        case "Music":
-          const result = await searchMusics(input.target);
-          return result;
-        default:
-          break;
-      }
+      return await searchMusics(input.target);
     }),
 });
