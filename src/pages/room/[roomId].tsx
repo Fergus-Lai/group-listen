@@ -9,6 +9,7 @@ import Player from "~/components/videoPlayer";
 import { useSession } from "next-auth/react";
 import { api } from "~/utils/api";
 import { type Room } from "@prisma/client";
+import type { UserData } from "~/interfaces/userData";
 import ListenerCard from "~/components/listener/listenerCard";
 
 interface RoomData extends Room {
@@ -33,7 +34,6 @@ const Home: NextPage = () => {
   const endHandler = () => {};
 
   useEffect(() => {
-    console.log(sessionStatus);
     if (sessionStatus === "loading") return;
     if (typeof roomId !== "string" || !/[A-Z0-9]{6}/.test(roomId)) {
       void router.push("/");
@@ -50,6 +50,12 @@ const Home: NextPage = () => {
     const channel = pusher.subscribe(roomId);
     channel.bind("newSong", ({ newSong }: { newSong: Song }): void => {
       setSong(newSong);
+    });
+    channel.bind("connected", ({ user }: { user: UserData }): void => {
+      const tempRoom = room;
+      if (!tempRoom) return;
+      tempRoom.users.push(user);
+      setRoom(tempRoom);
     });
     return () => {
       pusher.disconnect();
