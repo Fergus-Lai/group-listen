@@ -24,7 +24,7 @@ export const roomRouter = createTRPCRouter({
     .input(z.object({ roomId: z.string() }))
     .mutation(async ({ ctx, input }) => {
       const userId = ctx.session.user.id;
-      let roomData = await ctx.prisma.room.findUnique({
+      const roomData = await ctx.prisma.room.findUnique({
         where: { id: input.roomId },
         include: {
           users: {
@@ -60,7 +60,8 @@ export const roomRouter = createTRPCRouter({
           id: ctx.session.user.id,
           name: "",
           image: undefined,
-          discriminatorTag: undefined,
+          discriminator: undefined,
+          displayTag: ctx.session.user.displayTag,
         };
         if (roomData.anonymous) {
           userData.name = generateUsername("-", 2, 20);
@@ -68,7 +69,7 @@ export const roomRouter = createTRPCRouter({
           userData.name = ctx.session.user.name;
           userData.image = ctx.session.user.image;
           if (ctx.session.user.displayTag)
-            userData.discriminatorTag = ctx.session.user.discriminator;
+            userData.discriminator = ctx.session.user.discriminator;
         }
         void pusherServerClient.trigger(input.roomId, "connected", userData);
         roomData.users.push({
