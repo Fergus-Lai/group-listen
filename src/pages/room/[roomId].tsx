@@ -25,7 +25,9 @@ const Home: NextPage = () => {
 
   const { mutateAsync: connectRoom } = api.room.connected.useMutation();
 
-  const endHandler = () => {};
+  const endHandler = () => {
+    return;
+  };
 
   useEffect(() => {
     if (sessionStatus === "loading") return;
