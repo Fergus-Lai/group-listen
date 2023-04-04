@@ -7,6 +7,11 @@ import {
 } from "~/server/api/trpc";
 
 import ReRegExp from "reregexp";
+import { pusherServerClient } from "~/server/pusher";
+
+import { generateUsername } from "unique-username-generator";
+
+import { type UserData } from "~/interfaces/userData";
 
 const idReReg = new ReRegExp(/[A-Z0-9]{6}/);
 
@@ -15,6 +20,71 @@ const artistString = (artists: string[]) => {
 };
 
 export const roomRouter = createTRPCRouter({
+  connected: protectedProcedure
+    .input(z.object({ roomId: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      const userId = ctx.session.user.id;
+      let roomData = await ctx.prisma.room.findUnique({
+        where: { id: input.roomId },
+        include: {
+          users: {
+            select: {
+              id: true,
+              discriminator: true,
+              image: true,
+              name: true,
+              displayTag: true,
+            },
+          },
+        },
+      });
+      if (!roomData) throw Error("Room Not Found");
+      if (
+        !(
+          ctx.session.user.name &&
+          ctx.session.user.image &&
+          ctx.session.user.discriminator
+        )
+      )
+        throw Error("No Session Info");
+      if (roomData.users.findIndex((user) => user.id == userId) === -1) {
+        try {
+          await ctx.prisma.user.update({
+            where: { id: userId },
+            data: { roomId: input.roomId },
+          });
+        } catch (e) {
+          throw e;
+        }
+        const userData: UserData = {
+          id: ctx.session.user.id,
+          name: "",
+          image: undefined,
+          discriminatorTag: undefined,
+        };
+        if (roomData.anonymous) {
+          userData.name = generateUsername("-", 2, 20);
+        } else {
+          userData.name = ctx.session.user.name;
+          userData.image = ctx.session.user.image;
+          if (ctx.session.user.displayTag)
+            userData.discriminatorTag = ctx.session.user.discriminator;
+        }
+        void pusherServerClient.trigger(input.roomId, "connected", userData);
+        roomData.users.push({
+          id: ctx.session.user.id,
+          name: userData.name,
+          image: ctx.session.user.image,
+          discriminator: ctx.session.user.discriminator,
+          displayTag: ctx.session.user.displayTag,
+        });
+        if (!roomData) throw Error("Room Not Found");
+      }
+      roomData.users.map((user) =>
+        user.displayTag ? user : { ...user, discriminator: null }
+      );
+      return roomData;
+    }),
   create: protectedProcedure
     .input(
       z.object({

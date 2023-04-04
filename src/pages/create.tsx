@@ -14,6 +14,7 @@ import { type MusicVideo } from "node-youtube-music";
 import BackToTopButton from "~/components/backToTopButton";
 import PlaylistCard from "~/components/playlistRender/playlistCard";
 import { type Song } from "~/interfaces/song";
+import { useRouter } from "next/router";
 
 const Create: NextPage = () => {
   const [anonymous, setAnonymous] = useState(false);
@@ -21,6 +22,8 @@ const Create: NextPage = () => {
   const [searchTarget, setSearchTarget] = useState("");
   const [result, setResult] = useState<MusicVideo[]>([]);
   const [playlist, setPlaylist] = useState<Song[]>([]);
+
+  const router = useRouter();
   const search = api.youtube.search.useQuery(
     {
       target: searchTarget,
@@ -28,11 +31,7 @@ const Create: NextPage = () => {
     { enabled: false }
   );
 
-  const { mutate: createRoom } = api.room.create.useMutation();
-
-  useEffect(() => {
-    console.log(playlist);
-  }, [playlist]);
+  const { mutateAsync: createRoom } = api.room.create.useMutation();
 
   return (
     <>
@@ -85,7 +84,10 @@ const Create: NextPage = () => {
           <motion.button
             className="rounded-lg bg-slate-500 p-2 hover:bg-slate-700"
             onClick={() => {
-              createRoom({ playlist, anonymous, chat });
+              void createRoom({ playlist, anonymous, chat }).then((roomId) => {
+                void router.push(`/room/${roomId}`);
+              });
+              return;
             }}
           >
             Create
