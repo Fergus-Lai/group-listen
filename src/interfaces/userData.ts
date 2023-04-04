@@ -1,8 +1,8 @@
 interface UserData {
   id: string;
-  name: string | null;
-  image: string | null;
-  discriminator: string | null;
+  name: string | undefined | null;
+  image: string | undefined | null;
+  discriminator: string | undefined | null;
   displayTag: boolean;
 }
 

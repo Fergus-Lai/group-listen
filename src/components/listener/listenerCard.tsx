@@ -2,15 +2,10 @@ import Icon from "../icon";
 import { useState } from "react";
 import ListenerDetailCard from "./listenerDetailCard";
 import { AnimatePresence } from "framer-motion";
+import type { UserData } from "~/interfaces/userData";
 
 const ListenerCard: React.FC<{
-  user: {
-    id: string;
-    name: string | null;
-    image: string | null;
-    discriminator: string | null;
-    displayTag: boolean;
-  };
+  user: UserData;
 }> = ({ user }) => {
   const [showDetail, setShowDetail] = useState(false);
   user.image ??= "";

@@ -6,7 +6,7 @@ const ListenerDetailCard: React.FC<{
   id: string;
   name: string;
   image: string;
-  discriminator: string | null;
+  discriminator: string | undefined | null;
   displayTag: boolean;
 }> = ({ id, name, image, discriminator, displayTag }) => {
   return (

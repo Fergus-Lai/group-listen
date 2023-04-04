@@ -13,13 +13,7 @@ import type { UserData } from "~/interfaces/userData";
 import ListenerCard from "~/components/listener/listenerCard";
 
 interface RoomData extends Room {
-  users: {
-    id: string;
-    name: string | null;
-    image: string | null;
-    discriminator: string | null;
-    displayTag: boolean;
-  }[];
+  users: UserData[];
 }
 
 const Home: NextPage = () => {
