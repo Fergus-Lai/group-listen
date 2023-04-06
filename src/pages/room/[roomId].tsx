@@ -13,6 +13,7 @@ import type { UserData } from "~/interfaces/userData";
 import ListenerCard from "~/components/listener/listenerCard";
 import { toast } from "react-toastify";
 import { ScaleLoader } from "react-spinners";
+import BackToHomeButton from "~/components/backToHomeButton";
 
 interface RoomData extends Room {
   users: UserData[];
@@ -23,68 +24,73 @@ const Home: NextPage = () => {
   const { data: sessionData, status: sessionStatus } = useSession();
   const { roomId } = router.query;
   const [song, setSong] = useState<Song | undefined>(undefined);
+  const [room, setRoom] = useState<RoomData | undefined>(undefined);
 
-  const backToHome = async () =>
-    await new Promise((resolve) => setTimeout(resolve, 5000)).then(
-      void router.push("/")
-    );
+  const { mutateAsync: connectRoom, isLoading: roomLoading } =
+    api.room.connected.useMutation();
+  const { mutateAsync: disconnectRoom } = api.room.disconnected.useMutation();
 
-  const {
-    mutate: connectRoom,
-    isLoading: roomLoading,
-    data: room,
-  } = api.room.connected.useMutation();
-  const { mutate: disconnectRoom } = api.room.disconnected.useMutation();
+  const pusher: Pusher = new Pusher(env.NEXT_PUBLIC_PUSHER_APP_KEY, {
+    cluster: env.NEXT_PUBLIC_PUSHER_CLUSTER,
+  });
 
   const endHandler = () => {
     return;
   };
 
   useEffect(() => {
-    if (sessionStatus === "loading" || roomLoading) return;
+    if (!roomId) return;
     if (typeof roomId !== "string" || !/[A-Z0-9]{6}/.test(roomId)) {
-      toast.error("Invalid Room Id");
-      void backToHome();
+      if (!toast.isActive("invalidRoomId"))
+        toast.error("Invalid Room Id", { toastId: "invalidRoomId" });
+      void router.push("/");
       return;
     }
-    if (!room) {
-      toast.error("Room Not Found");
-      void backToHome();
-      return;
-    }
-    const pusher = new Pusher(env.NEXT_PUBLIC_PUSHER_APP_KEY, {
-      cluster: env.NEXT_PUBLIC_PUSHER_CLUSTER,
-    });
-    connectRoom({ roomId });
-    const channel = pusher.subscribe(roomId);
-    channel.bind("newSong", ({ newSong }: { newSong: Song }): void => {
-      setSong(newSong);
-    });
-    channel.bind("connected", ({ user }: { user: UserData }): void => {
-      if (!room) return;
-      room.users.push(user);
-    });
-    channel.bind("disconnected", ({ user }: { user: UserData }): void => {
-      if (!room) return;
-      room.users = room.users.filter((x) => x.id !== user.id);
-    });
-    channel.bind("closed", () => {
-      toast.warning("Room Closed");
-    });
-    return () => {
-      if (typeof roomId !== "string" || !room) {
-        toast.error("Room Not Found");
-        void backToHome();
-        return;
-      }
-      disconnectRoom({
-        roomId: roomId,
-        owner: room.ownerId === (sessionData ? sessionData.user.id : false),
+    connectRoom({ roomId })
+      .then((roomData) => {
+        setRoom(roomData);
+        const channel = pusher.subscribe(roomId);
+        channel.bind("newSong", ({ newSong }: { newSong: Song }): void => {
+          setSong(newSong);
+        });
+        channel.bind("connected", ({ user }: { user: UserData }): void => {
+          if (!room) return;
+          const tempRoom = room;
+          tempRoom.users.push(user);
+          setRoom(tempRoom);
+        });
+        channel.bind("disconnected", ({ user }: { user: UserData }): void => {
+          if (!room) return;
+          const tempRoom = room;
+          tempRoom.users = tempRoom.users.filter((x) => x.id !== user.id);
+          setRoom(tempRoom);
+        });
+        channel.bind("closed", () => {
+          if (!toast.isActive("roomCloseToast"))
+            toast.warning("Room Closed", { toastId: "roomCloseToast" });
+          void router.push("/");
+        });
+      })
+      .catch((error: Error) => {
+        if (error.message === "Room Not Found") {
+          if (!toast.isActive("roomNotFound"))
+            toast.error("Room Not Found", { toastId: "roomNotFound" });
+          void router.push("/");
+        }
       });
+  }, [roomId]);
+
+  useEffect(() => {
+    return () => {
       pusher.disconnect();
-      void backToHome();
+      if (room) {
+        disconnectRoom({
+          roomId: room.id,
+          owner: room.ownerId === (sessionData ? sessionData.user.id : false),
+        }).catch((e) => console.log(e));
+      }
     };
-  }, [sessionStatus, roomLoading]);
+  }, [room]);
 
   return (
     <>
@@ -102,7 +108,10 @@ const Home: NextPage = () => {
           room && (
             <>
               <div className="mx-2 flex h-full w-80 flex-col gap-2">
-                <p className="font-semibold text-white">Room: {roomId}</p>
+                <p className="flex flex-row gap-2 font-semibold text-white">
+                  <BackToHomeButton/>
+                  Room: {roomId}
+                </p>
                 <Player
                   id={song ? song.youtubeId : undefined}
                   onEnd={endHandler}

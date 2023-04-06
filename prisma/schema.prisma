@@ -86,7 +86,7 @@ model Song {
     artist String
     thumbnail String
     roomId String
-    room Room @relation(fields: [roomId], references: [id])
+    room Room @relation(fields: [roomId], references: [id], onDelete: Cascade)
 
     @@index([roomId])
 }
