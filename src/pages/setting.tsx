@@ -14,6 +14,7 @@ import LogOutModal from "~/components/logOutModal";
 import { AnimatePresence, motion } from "framer-motion";
 import Switch from "react-switch";
 import { api } from "~/utils/api";
+import BackToHomeButton from "~/components/backToHomeButton";
 
 // TODO: Implement Delete Account
 const deleteAccount: () => void = () => {
@@ -43,11 +44,7 @@ const Setting: NextPage = () => {
       </Head>
       <main className="flex min-h-screen flex-col items-center gap-2 bg-slate-800 py-8 text-white">
         <div className="flex w-2/3 flex-row items-center gap-2 text-left text-xl font-bold">
-          <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
-            <Link href="/">
-              <FontAwesomeIcon icon={faArrowLeft} className="w-4" />
-            </Link>
-          </motion.div>
+          <BackToHomeButton />
           Setting
         </div>
         <AnimatePresence initial={false} mode="sync">

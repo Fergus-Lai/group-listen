@@ -15,6 +15,7 @@ import BackToTopButton from "~/components/backToTopButton";
 import PlaylistCard from "~/components/playlistRender/playlistCard";
 import { type Song } from "~/interfaces/song";
 import { useRouter } from "next/router";
+import BackToHomeButton from "~/components/backToHomeButton";
 
 const Create: NextPage = () => {
   const [anonymous, setAnonymous] = useState(false);
@@ -43,11 +44,7 @@ const Create: NextPage = () => {
       <main className="flex min-h-screen flex-col items-center gap-2 bg-slate-800 py-8 text-white">
         <BackToTopButton />
         <div className="flex w-2/3 flex-row items-center gap-2 text-left text-xl font-bold">
-          <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
-            <Link href="/">
-              <FontAwesomeIcon icon={faArrowLeft} className="w-4  " />
-            </Link>
-          </motion.div>
+          <BackToHomeButton />
           Create a Room
         </div>
         <div className="flex w-2/3 flex-row justify-between">
