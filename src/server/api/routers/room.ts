@@ -59,8 +59,8 @@ export const roomRouter = createTRPCRouter({
         const userData: UserData = {
           id: ctx.session.user.id,
           name: "",
-          image: undefined,
-          discriminator: undefined,
+          image: null,
+          discriminator: null,
           displayTag: ctx.session.user.displayTag,
         };
         if (roomData.anonymous) {
@@ -85,6 +85,22 @@ export const roomRouter = createTRPCRouter({
         user.displayTag ? user : { ...user, discriminator: null }
       );
       return roomData;
+    }),
+  disconnected: protectedProcedure
+    .input(z.object({ roomId: z.string(), owner: z.boolean() }))
+    .mutation(async ({ ctx, input }) => {
+      const user = await ctx.prisma.user.update({
+        where: { id: ctx.session.user.id },
+        data: { roomId: null },
+      });
+      if (input.owner) {
+        await ctx.prisma.room.delete({ where: { id: input.roomId } });
+        await pusherServerClient.trigger(input.roomId, "closed", null);
+      } else {
+        await pusherServerClient.trigger(input.roomId, "disconnected", {
+          id: user.id,
+        });
+      }
     }),
   create: protectedProcedure
     .input(

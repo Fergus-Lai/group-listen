@@ -7,8 +7,8 @@ import { AnimatePresence, Reorder, motion } from "framer-motion";
 import Switch from "react-switch";
 import { useState, useEffect } from "react";
 import { api } from "~/utils/api";
-import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import { toast } from "react-toastify";
+
 import VideoCard from "~/components/videoRender/videoCard";
 import { type MusicVideo } from "node-youtube-music";
 import BackToTopButton from "~/components/backToTopButton";
@@ -42,7 +42,6 @@ const Create: NextPage = () => {
       </Head>
       <main className="flex min-h-screen flex-col items-center gap-2 bg-slate-800 py-8 text-white">
         <BackToTopButton />
-        <ToastContainer theme="dark" />
         <div className="flex w-2/3 flex-row items-center gap-2 text-left text-xl font-bold">
           <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
             <Link href="/">

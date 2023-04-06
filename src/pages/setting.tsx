@@ -9,8 +9,7 @@ import {
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
-import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import { toast } from "react-toastify";
 import LogOutModal from "~/components/logOutModal";
 import { AnimatePresence, motion } from "framer-motion";
 import Switch from "react-switch";
@@ -51,7 +50,6 @@ const Setting: NextPage = () => {
           </motion.div>
           Setting
         </div>
-        <ToastContainer theme="dark" />
         <AnimatePresence initial={false} mode="sync">
           {logOutModalOpen && (
             <LogOutModal
