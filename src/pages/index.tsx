@@ -12,13 +12,17 @@ import { NavLink, NavButton } from "~/components/navButton";
 import { useUser } from "@clerk/nextjs";
 
 import { useEffect } from "react";
+import { api } from "~/utils/api";
 
 const Home: NextPage = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const user = useUser();
+  const { mutate: upsertUser } = api.user.upsertUser.useMutation();
   useEffect(() => {
-    console.log(user.user);
-  }, [user]);
+    if (user.isLoaded && user.isSignedIn) {
+      upsertUser();
+    }
+  }, [user.isLoaded]);
 
   return (
     <>

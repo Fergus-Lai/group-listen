@@ -90,7 +90,7 @@ export const roomRouter = createTRPCRouter({
     .input(z.object({ roomId: z.string(), owner: z.boolean() }))
     .mutation(async ({ ctx, input }) => {
       const user = await ctx.prisma.user.update({
-        where: { id: ctx.session.user.id },
+        where: { id: ctx.currentUser.id },
         data: { roomId: null },
       });
       if (input.owner) {
