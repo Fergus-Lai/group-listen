@@ -13,6 +13,7 @@ const server = z.object({
   PUSHER_APP_KEY: z.string(),
   PUSHER_SECRET: z.string(),
   PUSHER_CLUSTER: z.string(),
+  DISCORD_TOKEN: z.string(),
 });
 
 /**
@@ -43,6 +44,7 @@ const processEnv = {
   PUSHER_CLUSTER: process.env.PUSHER_CLUSTER,
   NEXT_PUBLIC_PUSHER_APP_KEY: process.env.NEXT_PUBLIC_PUSHER_APP_KEY,
   NEXT_PUBLIC_PUSHER_CLUSTER: process.env.NEXT_PUBLIC_PUSHER_CLUSTER,
+  DISCORD_TOKEN: process.env.DISCORD_TOKEN,
   // NEXT_PUBLIC_CLIENTVAR: process.env.NEXT_PUBLIC_CLIENTVAR,
 };
 
