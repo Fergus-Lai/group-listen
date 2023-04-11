@@ -1,5 +1,4 @@
 import { type AppType } from "next/app";
-import { type Session } from "next-auth";
 
 import { ClerkProvider } from "@clerk/nextjs";
 
@@ -10,10 +9,7 @@ import "react-toastify/dist/ReactToastify.css";
 
 import { ToastContainer } from "react-toastify";
 
-const MyApp: AppType<{ session: Session | null }> = ({
-  Component,
-  pageProps,
-}) => {
+const MyApp: AppType = ({ Component, pageProps }) => {
   return (
     <ClerkProvider {...pageProps}>
       <ToastContainer theme="dark" />
