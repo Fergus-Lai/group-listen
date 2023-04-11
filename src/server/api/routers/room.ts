@@ -6,7 +6,6 @@ import ReRegExp from "reregexp";
 import { pusherServerClient } from "~/server/pusher";
 
 import { generateUsername } from "unique-username-generator";
-import { User } from "@prisma/client";
 
 const idReReg = new ReRegExp(/[A-Z0-9]{6}/);
 
