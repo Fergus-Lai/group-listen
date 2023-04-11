@@ -6,7 +6,6 @@ import {
   faRightToBracket,
   faArrowLeft,
 } from "@fortawesome/free-solid-svg-icons";
-import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
@@ -15,6 +14,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import Switch from "react-switch";
 import { api } from "~/utils/api";
 import BackToHomeButton from "~/components/backToHomeButton";
+import { useUser } from "@clerk/nextjs";
 
 // TODO: Implement Delete Account
 const deleteAccount: () => void = () => {
@@ -22,18 +22,29 @@ const deleteAccount: () => void = () => {
 };
 
 const Setting: NextPage = () => {
-  const { data: sessionData } = useSession();
+  const { user, isLoaded, isSignedIn } = useUser();
   const router = useRouter();
   const [logOutModalOpen, setLogOutModalOpen] = useState(false);
   const [displayTag, setDisplayTag] = useState<boolean>(false);
-  const mutation = api.setting.updateDisplayTag.useMutation();
+  const { mutate: updateTag } = api.user.updateTag.useMutation();
+  const { data: userData, isLoading: userDataLoading } =
+    api.user.getUser.useQuery();
   useEffect(() => {
-    if (!sessionData) {
+    if (isLoaded && !isSignedIn) {
       void router.push("/");
       return;
     }
-    setDisplayTag(sessionData.user.displayTag);
-  }, [sessionData]);
+  }, [isLoaded]);
+
+  useEffect(() => {
+    if (userDataLoading || !userData) return;
+    console.log(userData.discriminator);
+    setDisplayTag(!!userData.discriminator);
+  }, [userDataLoading]);
+
+  useEffect(() => {
+    if (!user && isLoaded) void router.push("/");
+  }, [user]);
 
   return (
     <>
@@ -54,14 +65,14 @@ const Setting: NextPage = () => {
             ></LogOutModal>
           )}
         </AnimatePresence>
-        {sessionData && (
+        {isLoaded && (
           <>
             <div className="w-2/3 text-lg font-semibold">Social Setting</div>
             <div className="flex w-2/3 flex-row justify-between">
               Display Discord Tag
               <Switch
                 onChange={() => {
-                  mutation.mutate({ displayTag: !displayTag });
+                  updateTag({ displayTag: !displayTag });
                   setDisplayTag(!displayTag);
                 }}
                 checked={displayTag}

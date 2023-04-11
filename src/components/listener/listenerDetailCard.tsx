@@ -1,14 +1,9 @@
 import Image from "next/image";
 import { motion } from "framer-motion";
 import Icon from "../icon";
+import type { User } from "@prisma/client";
 
-const ListenerDetailCard: React.FC<{
-  id: string;
-  name: string;
-  image: string;
-  discriminator: string | undefined | null;
-  displayTag: boolean;
-}> = ({ id, name, image, discriminator, displayTag }) => {
+const ListenerDetailCard: React.FC<{ user: User }> = ({ user }) => {
   return (
     <motion.div
       className="absolute top-4 -left-48 z-10 flex w-48 flex-col gap-2 rounded-lg bg-slate-700 p-2"
@@ -18,13 +13,13 @@ const ListenerDetailCard: React.FC<{
     >
       <div className="flex w-full flex-col rounded-lg  bg-slate-700 p-2">
         <div className="h-10 w-10">
-          <Icon src={image} />
+          <Icon src={user.image ?? ""} />
         </div>
         <div className="flex flex-row justify-between">
           <div className="flex flex-col">
-            <div className="truncate text-white">{name}</div>
+            <div className="truncate text-white">{user.name}</div>
             <div className="min-h-[1.5rem] text-white">
-              {displayTag && discriminator ? `#${discriminator}` : ""}
+              {user.discriminator ?? ""}
             </div>
           </div>
           <motion.button

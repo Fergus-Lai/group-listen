@@ -1,6 +1,5 @@
 import { type NextPage } from "next";
 import Head from "next/head";
-import { signIn, useSession } from "next-auth/react";
 import { useState } from "react";
 import { Spin as Hamburger } from "hamburger-react";
 import {
@@ -10,10 +9,20 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { motion } from "framer-motion";
 import { NavLink, NavButton } from "~/components/navButton";
+import { useUser } from "@clerk/nextjs";
+
+import { useEffect } from "react";
+import { api } from "~/utils/api";
 
 const Home: NextPage = () => {
-  const { data: sessionData } = useSession();
   const [menuOpen, setMenuOpen] = useState(false);
+  const user = useUser();
+  const { mutate: upsertUser } = api.user.upsertUser.useMutation();
+  useEffect(() => {
+    if (user.isLoaded && user.isSignedIn) {
+      upsertUser();
+    }
+  }, [user.isLoaded]);
 
   return (
     <>
@@ -26,7 +35,7 @@ const Home: NextPage = () => {
         <div className=""></div>
 
         <div className="absolute left-8 bottom-8 flex flex-col gap-4">
-          {sessionData ? (
+          {user.isSignedIn ? (
             <>
               <NavLink
                 menuOpen={menuOpen}
@@ -46,7 +55,6 @@ const Home: NextPage = () => {
               menuOpen={menuOpen}
               closedY={80}
               icon={faRightToBracket}
-              onClick={() => void signIn()}
             />
           )}
 

@@ -1,5 +1,5 @@
 import Backdrop from "./utils/backdrop";
-import { signOut } from "next-auth/react";
+import { useClerk } from "@clerk/clerk-react";
 
 interface props {
   closeHandler: () => void;
@@ -7,6 +7,7 @@ interface props {
 
 const LogOutModal: React.FC<props> = (props) => {
   const { closeHandler } = props;
+  const { signOut } = useClerk();
   return (
     <Backdrop onClick={closeHandler}>
       <div className="flex h-48 w-1/2 flex-col justify-between rounded-lg bg-slate-800 p-4">
