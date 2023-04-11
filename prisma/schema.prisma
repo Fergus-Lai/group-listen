@@ -17,10 +17,9 @@ model User {
     name  String
     image String?
     discriminator String?
-    displayTag  Boolean @default(false)
     roomId        String?
     room          Room? @relation(fields: [roomId], references:[id])
-
+    lastUpdated DateTime @updatedAt
     @@index([roomId])
 }
 

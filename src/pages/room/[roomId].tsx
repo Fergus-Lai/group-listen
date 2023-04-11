@@ -7,8 +7,7 @@ import { useEffect, useState } from "react";
 import { type Song } from "~/interfaces/song";
 import Player from "~/components/videoPlayer";
 import { api } from "~/utils/api";
-import { type Room } from "@prisma/client";
-import type { UserData } from "~/interfaces/userData";
+import { type User, type Room } from "@prisma/client";
 import ListenerCard from "~/components/listener/listenerCard";
 import { toast } from "react-toastify";
 import { ScaleLoader } from "react-spinners";
@@ -16,10 +15,7 @@ import BackToHomeButton from "~/components/backToHomeButton";
 import { useUser } from "@clerk/nextjs";
 
 interface RoomData extends Room {
-  users: {
-    id: string;
-    discriminator: string | null;
-  }[];
+  users: User[];
 }
 
 const Home: NextPage = () => {
@@ -60,13 +56,13 @@ const Home: NextPage = () => {
         channel.bind("newSong", ({ newSong }: { newSong: Song }): void => {
           setSong(newSong);
         });
-        channel.bind("connected", ({ user }: { user: UserData }): void => {
+        channel.bind("connected", ({ user }: { user: User }): void => {
           if (!room) return;
           const tempRoom = room;
           tempRoom.users.push(user);
           setRoom(tempRoom);
         });
-        channel.bind("disconnected", ({ user }: { user: UserData }): void => {
+        channel.bind("disconnected", ({ user }: { user: User }): void => {
           if (!room) return;
           const tempRoom = room;
           tempRoom.users = tempRoom.users.filter((x) => x.id !== user.id);

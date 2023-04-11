@@ -38,8 +38,13 @@ const Setting: NextPage = () => {
 
   useEffect(() => {
     if (userDataLoading || !userData) return;
-    setDisplayTag(userData.displayTag);
+    console.log(userData.discriminator);
+    setDisplayTag(!!userData.discriminator);
   }, [userDataLoading]);
+
+  useEffect(() => {
+    if (!user && isLoaded) void router.push("/");
+  }, [user]);
 
   return (
     <>
@@ -67,7 +72,7 @@ const Setting: NextPage = () => {
               Display Discord Tag
               <Switch
                 onChange={() => {
-                  updateTag({ displayTag });
+                  updateTag({ displayTag: !displayTag });
                   setDisplayTag(!displayTag);
                 }}
                 checked={displayTag}

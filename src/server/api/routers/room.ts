@@ -1,18 +1,12 @@
 import { z } from "zod";
 
-import {
-  createTRPCRouter,
-  publicProcedure,
-  protectedProcedure,
-} from "~/server/api/trpc";
+import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 
 import ReRegExp from "reregexp";
 import { pusherServerClient } from "~/server/pusher";
 
 import { generateUsername } from "unique-username-generator";
-
-import { type UserData } from "~/interfaces/userData";
-import { clerkClient } from "@clerk/nextjs/server";
+import { User } from "@prisma/client";
 
 const idReReg = new ReRegExp(/[A-Z0-9]{6}/);
 
@@ -27,12 +21,7 @@ export const roomRouter = createTRPCRouter({
       const roomData = await ctx.prisma.room.findUnique({
         where: { id: input.roomId },
         include: {
-          users: {
-            select: {
-              id: true,
-              discriminator: true,
-            },
-          },
+          users: true,
         },
       });
       if (!roomData) throw Error("Room Not Found");
@@ -41,24 +30,13 @@ export const roomRouter = createTRPCRouter({
           where: { id: ctx.userId },
           data: { roomId: input.roomId },
         });
-        const userData = {
-          id: ctx.userId,
-          name: "",
-          image: "",
-          discriminator: "",
-        };
         if (roomData.anonymous) {
-          userData.name = generateUsername("-", 2, 20);
-        } else {
-          const clerkUser = await clerkClient.users.getUser(ctx.userId);
-          if (!clerkUser.externalAccounts[0])
-            throw Error("Discord Account Not Found");
-          userData.name = clerkUser.externalAccounts[0].firstName;
-          userData.image = clerkUser.externalAccounts[0].picture;
-          userData.discriminator = user.discriminator ?? "";
+          user.name = generateUsername("-", 2, 20);
+          user.image = null;
+          user.discriminator = null;
         }
-        void pusherServerClient.trigger(input.roomId, "connected", userData);
-        roomData.users.push(userData);
+        void pusherServerClient.trigger(input.roomId, "connected", user);
+        roomData.users.push(user);
         if (!roomData) throw Error("Room Not Found");
       }
       return roomData;
