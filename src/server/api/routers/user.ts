@@ -1,38 +1,40 @@
 import { clerkClient } from "@clerk/nextjs/server";
 import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "../trpc";
-import { REST } from "@discordjs/rest";
-import { Routes, RESTGetAPIUserResult } from "discord-api-types/v9";
-import { env } from "~/env.mjs";
+import { TRPCError } from "@trpc/server";
+import getDiscordUser from "~/server/discordHelper";
 export const userRouter = createTRPCRouter({
   upsertUser: protectedProcedure.mutation(async ({ ctx }) => {
+    const clerkUser = await clerkClient.users.getUser(ctx.userId);
+    if (!clerkUser.externalAccounts[0])
+      throw new TRPCError({
+        message: "Discord Account Not Found",
+        code: "NOT_FOUND",
+      });
+    const discordUser = await getDiscordUser(
+      clerkUser.externalAccounts[0].externalId
+    );
     return ctx.prisma.user.upsert({
       where: { id: ctx.userId },
-      update: {},
+      update: {
+        name: discordUser.username,
+        image: discordUser.avatar,
+        discriminator: discordUser.discriminator,
+      },
       create: {
         id: ctx.userId,
+        name: discordUser.username,
+        image: discordUser.avatar,
+        discriminator: discordUser.discriminator,
       },
     });
   }),
   updateTag: protectedProcedure
     .input(z.object({ displayTag: z.boolean() }))
     .mutation(async ({ ctx, input }) => {
-      let discriminator: string | null;
-      if (!input.displayTag) {
-        const clerkUser = await clerkClient.users.getUser(ctx.userId);
-        if (!clerkUser.externalAccounts[0]) return;
-        const rest = new REST().setToken(env.DISCORD_TOKEN);
-        const discordUser = await (rest.get(
-          Routes.user(clerkUser.externalAccounts[0].externalId)
-        ) as Promise<RESTGetAPIUserResult>);
-
-        discriminator = discordUser.discriminator;
-      } else {
-        discriminator = null;
-      }
       const user = await ctx.prisma.user.update({
         where: { id: ctx.userId },
-        data: { discriminator: discriminator },
+        data: { displayTag: input.displayTag },
       });
       return user;
     }),

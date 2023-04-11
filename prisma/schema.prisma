@@ -14,7 +14,10 @@ generator client {
 
 model User {
     id            String    @id
+    name  String
+    image String?
     discriminator String?
+    displayTag  Boolean @default(false)
     roomId        String?
     room          Room? @relation(fields: [roomId], references:[id])
 

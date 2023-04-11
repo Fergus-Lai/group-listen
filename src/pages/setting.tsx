@@ -38,7 +38,7 @@ const Setting: NextPage = () => {
 
   useEffect(() => {
     if (userDataLoading || !userData) return;
-    setDisplayTag(!!userData.discriminator);
+    setDisplayTag(userData.displayTag);
   }, [userDataLoading]);
 
   return (

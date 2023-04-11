@@ -6,7 +6,6 @@ import Pusher from "pusher-js";
 import { useEffect, useState } from "react";
 import { type Song } from "~/interfaces/song";
 import Player from "~/components/videoPlayer";
-import { useSession } from "next-auth/react";
 import { api } from "~/utils/api";
 import { type Room } from "@prisma/client";
 import type { UserData } from "~/interfaces/userData";
@@ -14,14 +13,22 @@ import ListenerCard from "~/components/listener/listenerCard";
 import { toast } from "react-toastify";
 import { ScaleLoader } from "react-spinners";
 import BackToHomeButton from "~/components/backToHomeButton";
+import { useUser } from "@clerk/nextjs";
 
 interface RoomData extends Room {
-  users: UserData[];
+  users: {
+    id: string;
+    discriminator: string | null;
+  }[];
 }
 
 const Home: NextPage = () => {
   const router = useRouter();
-  const { data: sessionData, status: sessionStatus } = useSession();
+  const {
+    user,
+    isLoaded: userIsLoaded,
+    isSignedIn: userIsSignedIn,
+  } = useUser();
   const { roomId } = router.query;
   const [song, setSong] = useState<Song | undefined>(undefined);
   const [room, setRoom] = useState<RoomData | undefined>(undefined);
@@ -86,7 +93,7 @@ const Home: NextPage = () => {
       if (room) {
         disconnectRoom({
           roomId: room.id,
-          owner: room.ownerId === (sessionData ? sessionData.user.id : false),
+          owner: room.ownerId === (user ? user.id : false),
         }).catch((e) => console.log(e));
       }
     };
@@ -100,7 +107,7 @@ const Home: NextPage = () => {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <main className="flex min-h-screen flex-col items-center justify-start overflow-y-auto bg-slate-800 py-4 sm:flex-row sm:items-start sm:justify-center">
-        {roomLoading || sessionStatus === "loading" ? (
+        {roomLoading || !userIsLoaded ? (
           <div className="flex min-h-screen min-w-full items-center justify-center">
             <ScaleLoader color={"#cbd5e1"} />
           </div>
@@ -108,10 +115,10 @@ const Home: NextPage = () => {
           room && (
             <>
               <div className="mx-2 flex h-full w-80 flex-col gap-2">
-                <p className="flex flex-row gap-2 font-semibold text-white">
-                  <BackToHomeButton/>
+                <div className="flex flex-row gap-2 font-semibold text-white">
+                  <BackToHomeButton />
                   Room: {roomId}
-                </p>
+                </div>
                 <Player
                   id={song ? song.youtubeId : undefined}
                   onEnd={endHandler}

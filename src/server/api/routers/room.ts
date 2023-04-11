@@ -12,6 +12,7 @@ import { pusherServerClient } from "~/server/pusher";
 import { generateUsername } from "unique-username-generator";
 
 import { type UserData } from "~/interfaces/userData";
+import { clerkClient } from "@clerk/nextjs/server";
 
 const idReReg = new ReRegExp(/[A-Z0-9]{6}/);
 
@@ -23,7 +24,6 @@ export const roomRouter = createTRPCRouter({
   connected: protectedProcedure
     .input(z.object({ roomId: z.string() }))
     .mutation(async ({ ctx, input }) => {
-      const userId = ctx.session.user.id;
       const roomData = await ctx.prisma.room.findUnique({
         where: { id: input.roomId },
         include: {
@@ -31,66 +31,43 @@ export const roomRouter = createTRPCRouter({
             select: {
               id: true,
               discriminator: true,
-              image: true,
-              name: true,
-              displayTag: true,
             },
           },
         },
       });
       if (!roomData) throw Error("Room Not Found");
-      if (
-        !(
-          ctx.session.user.name &&
-          ctx.session.user.image &&
-          ctx.session.user.discriminator
-        )
-      )
-        throw Error("No Session Info");
-      if (roomData.users.findIndex((user) => user.id == userId) === -1) {
-        try {
-          await ctx.prisma.user.update({
-            where: { id: userId },
-            data: { roomId: input.roomId },
-          });
-        } catch (e) {
-          throw e;
-        }
-        const userData: UserData = {
-          id: ctx.session.user.id,
+      if (roomData.users.findIndex((user) => user.id == ctx.userId) === -1) {
+        const user = await ctx.prisma.user.update({
+          where: { id: ctx.userId },
+          data: { roomId: input.roomId },
+        });
+        const userData = {
+          id: ctx.userId,
           name: "",
-          image: null,
-          discriminator: null,
-          displayTag: ctx.session.user.displayTag,
+          image: "",
+          discriminator: "",
         };
         if (roomData.anonymous) {
           userData.name = generateUsername("-", 2, 20);
         } else {
-          userData.name = ctx.session.user.name;
-          userData.image = ctx.session.user.image;
-          if (ctx.session.user.displayTag)
-            userData.discriminator = ctx.session.user.discriminator;
+          const clerkUser = await clerkClient.users.getUser(ctx.userId);
+          if (!clerkUser.externalAccounts[0])
+            throw Error("Discord Account Not Found");
+          userData.name = clerkUser.externalAccounts[0].firstName;
+          userData.image = clerkUser.externalAccounts[0].picture;
+          userData.discriminator = user.discriminator ?? "";
         }
         void pusherServerClient.trigger(input.roomId, "connected", userData);
-        roomData.users.push({
-          id: ctx.session.user.id,
-          name: userData.name,
-          image: ctx.session.user.image,
-          discriminator: ctx.session.user.discriminator,
-          displayTag: ctx.session.user.displayTag,
-        });
+        roomData.users.push(userData);
         if (!roomData) throw Error("Room Not Found");
       }
-      roomData.users.map((user) =>
-        user.displayTag ? user : { ...user, discriminator: null }
-      );
       return roomData;
     }),
   disconnected: protectedProcedure
     .input(z.object({ roomId: z.string(), owner: z.boolean() }))
     .mutation(async ({ ctx, input }) => {
       const user = await ctx.prisma.user.update({
-        where: { id: ctx.currentUser.id },
+        where: { id: ctx.userId },
         data: { roomId: null },
       });
       if (input.owner) {
@@ -130,7 +107,7 @@ export const roomRouter = createTRPCRouter({
       await ctx.prisma.room.create({
         data: {
           id: id,
-          ownerId: ctx.session.user.id,
+          ownerId: ctx.userId,
           anonymous: input.anonymous,
           chat: input.chat,
         },
@@ -159,7 +136,7 @@ export const roomRouter = createTRPCRouter({
       );
       const createSong = ctx.prisma.song.createMany({ data: playlist });
       const linkUser = ctx.prisma.user.update({
-        where: { id: ctx.session.user.id },
+        where: { id: ctx.userId },
         data: { roomId: id },
       });
       await Promise.all([createSong, linkUser]);
