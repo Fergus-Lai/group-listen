@@ -13,6 +13,7 @@ import { toast } from "react-toastify";
 import { ScaleLoader } from "react-spinners";
 import BackToHomeButton from "~/components/backToHomeButton";
 import { useUser } from "@clerk/nextjs";
+import ReactPlayer from "react-player/youtube";
 
 interface RoomData extends Room {
   users: User[];
@@ -115,9 +116,14 @@ const Home: NextPage = () => {
                   <BackToHomeButton />
                   Room: {roomId}
                 </div>
-                <Player
-                  id={song ? song.youtubeId : undefined}
-                  onEnd={endHandler}
+                <ReactPlayer
+                  url={`https://www.youtube.com/watch?v=${
+                    song ? song.youtubeId : "t6gl5OYUZCE"
+                  }`}
+                  playing={true}
+                  width="300px"
+                  height="300px"
+                  onEnded={endHandler}
                 />
                 <p className="h-6 font-semibold text-white">
                   {song ? (song.title ? song.title : "") : ""}
