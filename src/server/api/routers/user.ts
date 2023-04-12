@@ -67,4 +67,10 @@ export const userRouter = createTRPCRouter({
   getUser: protectedProcedure.query(({ ctx }) => {
     return ctx.prisma.user.findUnique({ where: { id: ctx.userId } });
   }),
+  deleteUser: protectedProcedure.mutation(async ({ ctx }) => {
+    const prismaPromise = ctx.prisma.user.delete({ where: { id: ctx.userId } });
+    const clerkPromise = clerkClient.users.deleteUser(ctx.userId);
+    await Promise.all([prismaPromise, clerkPromise]);
+    return "Deleted";
+  }),
 });

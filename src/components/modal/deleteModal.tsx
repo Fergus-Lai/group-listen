@@ -1,19 +1,17 @@
-import Backdrop from "./utils/backdrop";
-import { useClerk } from "@clerk/clerk-react";
+import Backdrop from "../utils/backdrop";
 
 interface props {
   closeHandler: () => void;
+  deleteHandler: () => Promise<void>;
 }
 
-const LogOutModal: React.FC<props> = (props) => {
-  const { closeHandler } = props;
-  const { signOut } = useClerk();
+const DeleteModal: React.FC<props> = ({ closeHandler, deleteHandler }) => {
   return (
     <Backdrop onClick={closeHandler}>
       <div className="flex h-48 w-1/2 flex-col justify-between rounded-lg bg-slate-800 p-4">
         <div>
-          <div className="text-lg font-semibold text-white">Log Out</div>
-          <div>Are you sure you want to log out?</div>
+          <div className="text-lg font-semibold text-white">Delete Account</div>
+          <div>Are you sure you want to delete your account?</div>
         </div>
         <div className="relative mb-4 flex flex-row justify-end gap-4 self-end">
           <button
@@ -24,9 +22,9 @@ const LogOutModal: React.FC<props> = (props) => {
           </button>
           <button
             className="w-24 rounded-lg bg-red-500 p-2 hover:opacity-50"
-            onClick={() => void signOut()}
+            onClick={() => void deleteHandler()}
           >
-            Log Out
+            Delete
           </button>
         </div>
       </div>
@@ -34,4 +32,4 @@ const LogOutModal: React.FC<props> = (props) => {
   );
 };
 
-export default LogOutModal;
+export default DeleteModal;

@@ -9,23 +9,22 @@ import {
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
-import LogOutModal from "~/components/logOutModal";
+import LogOutModal from "~/components/modal/logOutModal";
 import { AnimatePresence, motion } from "framer-motion";
 import Switch from "react-switch";
 import { api } from "~/utils/api";
 import BackToHomeButton from "~/components/backToHomeButton";
-import { useUser } from "@clerk/nextjs";
+import { useClerk, useUser } from "@clerk/nextjs";
 import Icon from "~/components/icon";
+import DeleteModal from "~/components/modal/deleteModal";
 
 // TODO: Implement Delete Account
-const deleteAccount: () => void = () => {
-  toast.error("Delete Account Not Yet Implemented");
-};
 
 const Setting: NextPage = () => {
   const { user, isLoaded, isSignedIn } = useUser();
   const router = useRouter();
   const [logOutModalOpen, setLogOutModalOpen] = useState(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [displayTag, setDisplayTag] = useState<boolean>(false);
   const { mutateAsync: updateTag } = api.user.updateTag.useMutation();
   const [disableSwitch, setDisableSwitch] = useState(false);
@@ -34,6 +33,17 @@ const Setting: NextPage = () => {
     isLoading: userDataLoading,
     refetch: userRefetch,
   } = api.user.getUser.useQuery();
+
+  const { signOut } = useClerk();
+
+  const { mutateAsync: deleteUser } = api.user.deleteUser.useMutation();
+
+  const deleteAccount = async () => {
+    await deleteUser();
+    await signOut();
+    void router.push("/");
+  };
+
   useEffect(() => {
     if (isLoaded && !isSignedIn) {
       void router.push("/");
@@ -68,6 +78,14 @@ const Setting: NextPage = () => {
             <LogOutModal
               closeHandler={() => void setLogOutModalOpen(false)}
             ></LogOutModal>
+          )}
+        </AnimatePresence>
+        <AnimatePresence initial={false} mode="sync">
+          {deleteModalOpen && (
+            <DeleteModal
+              closeHandler={() => void setDeleteModalOpen(false)}
+              deleteHandler={deleteAccount}
+            ></DeleteModal>
           )}
         </AnimatePresence>
         {isLoaded && (
@@ -113,7 +131,7 @@ const Setting: NextPage = () => {
                 <FontAwesomeIcon icon={faRightToBracket} className="w-4" />
               </button>
               <button
-                onClick={() => void deleteAccount()}
+                onClick={() => void setDeleteModalOpen(true)}
                 className="flex w-32 flex-row items-center justify-between rounded-lg bg-red-500 p-2 hover:opacity-50"
               >
                 Delete Account
