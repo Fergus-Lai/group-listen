@@ -15,6 +15,7 @@ import Switch from "react-switch";
 import { api } from "~/utils/api";
 import BackToHomeButton from "~/components/backToHomeButton";
 import { useUser } from "@clerk/nextjs";
+import Icon from "~/components/icon";
 
 // TODO: Implement Delete Account
 const deleteAccount: () => void = () => {
@@ -26,9 +27,13 @@ const Setting: NextPage = () => {
   const router = useRouter();
   const [logOutModalOpen, setLogOutModalOpen] = useState(false);
   const [displayTag, setDisplayTag] = useState<boolean>(false);
-  const { mutate: updateTag } = api.user.updateTag.useMutation();
-  const { data: userData, isLoading: userDataLoading } =
-    api.user.getUser.useQuery();
+  const { mutateAsync: updateTag } = api.user.updateTag.useMutation();
+  const [disableSwitch, setDisableSwitch] = useState(false);
+  const {
+    data: userData,
+    isLoading: userDataLoading,
+    refetch: userRefetch,
+  } = api.user.getUser.useQuery();
   useEffect(() => {
     if (isLoaded && !isSignedIn) {
       void router.push("/");
@@ -67,16 +72,36 @@ const Setting: NextPage = () => {
         </AnimatePresence>
         {isLoaded && (
           <>
-            <div className="w-2/3 text-lg font-semibold">Social Setting</div>
-            <div className="flex w-2/3 flex-row justify-between">
-              Display Discord Tag
-              <Switch
-                onChange={() => {
-                  updateTag({ displayTag: !displayTag });
-                  setDisplayTag(!displayTag);
-                }}
-                checked={displayTag}
-              />
+            <div className="w-2/3 text-lg font-semibold">Profile</div>
+            <div className="mt-2 flex w-2/3 flex-col items-center gap-2 rounded-lg bg-slate-900 p-2 text-slate-300">
+              <div className="flex w-full flex-row items-center justify-between text-center">
+                <div className="truncate text-lg font-bold text-slate-100">
+                  {userData?.name ?? ""}
+                  {userData?.discriminator ? `#${userData.discriminator}` : ""}
+                </div>
+                <div className="h-16 w-16 rounded-full">
+                  <Icon src={userData?.image ?? ""} />
+                </div>
+              </div>
+              <div className="flex w-full flex-row items-center justify-between">
+                Display Discord Tag
+                <Switch
+                  disabled={disableSwitch}
+                  onChange={() => {
+                    setDisableSwitch(true);
+                    updateTag({ displayTag: !displayTag })
+                      .then(() => {
+                        userRefetch()
+                          .then(() => setDisableSwitch(false))
+                          .catch((e) => toast.error("Error Occurred"));
+                      })
+                      .catch((e) => toast.error("Error Occurred"));
+                    setDisplayTag(!displayTag);
+                    return;
+                  }}
+                  checked={displayTag}
+                />
+              </div>
             </div>
             <div className="w-2/3 text-lg font-semibold">Account Setting</div>
             <div className="flex w-2/3 gap-2">
