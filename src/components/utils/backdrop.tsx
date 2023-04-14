@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 
 interface props {
   children: React.ReactNode;
-  onClick: () => void;
+  onClick?: () => void;
 }
 
 const Backdrop: React.FC<props> = (props) => {

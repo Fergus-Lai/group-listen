@@ -16,6 +16,7 @@ import PlaylistCard from "~/components/playlistRender/playlistCard";
 import { type Song } from "~/interfaces/song";
 import { useRouter } from "next/router";
 import BackToHomeButton from "~/components/backToHomeButton";
+import OverlaySpinner from "~/components/utils/overlaySpinner";
 
 const Create: NextPage = () => {
   const [anonymous, setAnonymous] = useState(false);
@@ -23,6 +24,7 @@ const Create: NextPage = () => {
   const [searchTarget, setSearchTarget] = useState("");
   const [result, setResult] = useState<MusicVideo[]>([]);
   const [playlist, setPlaylist] = useState<Song[]>([]);
+  const [creatingRoom, setCreatingRoom] = useState(false);
 
   const router = useRouter();
   const search = api.youtube.search.useQuery(
@@ -42,6 +44,11 @@ const Create: NextPage = () => {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <main className="flex min-h-screen flex-col items-center gap-2 bg-slate-800 py-8 text-white">
+        {creatingRoom && (
+          <AnimatePresence>
+            <OverlaySpinner />
+          </AnimatePresence>
+        )}
         <BackToTopButton />
         <div className="flex w-2/3 flex-row items-center gap-2 text-left text-xl font-bold">
           <BackToHomeButton />
@@ -80,10 +87,21 @@ const Create: NextPage = () => {
           <motion.button
             className="rounded-lg bg-slate-500 p-2 hover:bg-slate-700"
             onClick={() => {
-              void createRoom({ playlist, anonymous, chat }).then((roomId) => {
-                void router.push(`/room/${roomId}`);
-              });
-              return;
+              toast.info("Creating Room");
+              setCreatingRoom(true);
+              if (playlist.length <= 0) {
+                toast.error("No Song In Playlist");
+                setCreatingRoom(false);
+                return;
+              }
+              createRoom({ playlist, anonymous, chat })
+                .then((roomId) => {
+                  setCreatingRoom(false);
+                  void router.push(`/room/${roomId}`);
+                })
+                .catch((e) =>
+                  toast.error("Error Occurred Please Try Again Later")
+                );
             }}
           >
             Create
