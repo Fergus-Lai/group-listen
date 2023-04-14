@@ -43,12 +43,12 @@ const Create: NextPage = () => {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <main className="flex min-h-screen flex-col items-center gap-2 bg-slate-800 py-8 text-white">
+        <BackToTopButton />
         {creatingRoom && (
           <AnimatePresence>
             <OverlaySpinner />
           </AnimatePresence>
         )}
-        <BackToTopButton />
         <div className="flex w-2/3 flex-row items-center gap-2 text-left text-xl font-bold">
           <BackToHomeButton />
           Create a Room

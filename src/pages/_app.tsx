@@ -19,9 +19,9 @@ const MyApp: AppType = ({ Component, pageProps }) => {
       <AnimatePresence mode="wait">
         <motion.div
           key={router.route}
-          initial={{ opacity: 0, x: "-100vh" }}
-          animate={{ opacity: 1, x: 0 }}
-          exit={{ opacity: 0, x: "100vh" }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
         >
           <Component {...pageProps} />
         </motion.div>
