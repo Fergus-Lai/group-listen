@@ -1,11 +1,10 @@
 import { type NextPage } from "next";
 import Head from "next/head";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faArrowLeft, faSearch } from "@fortawesome/free-solid-svg-icons";
-import Link from "next/link";
+import { faSearch } from "@fortawesome/free-solid-svg-icons";
 import { AnimatePresence, Reorder, motion } from "framer-motion";
 import Switch from "react-switch";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { api } from "~/utils/api";
 import { toast } from "react-toastify";
 
@@ -99,7 +98,7 @@ const Create: NextPage = () => {
                   setCreatingRoom(false);
                   void router.push(`/room/${roomId}`);
                 })
-                .catch((e) =>
+                .catch(() =>
                   toast.error("Error Occurred Please Try Again Later")
                 );
             }}

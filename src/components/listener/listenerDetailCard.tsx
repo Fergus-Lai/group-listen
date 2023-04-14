@@ -1,4 +1,3 @@
-import Image from "next/image";
 import { motion } from "framer-motion";
 import Icon from "../icon";
 import type { User } from "@prisma/client";

@@ -4,15 +4,14 @@ import { useRouter } from "next/router";
 import { env } from "~/env.mjs";
 import Pusher from "pusher-js";
 import { useEffect, useState } from "react";
-import Player from "~/components/videoPlayer";
 import { api } from "~/utils/api";
 import type { User, Room, Song } from "@prisma/client";
 import ListenerCard from "~/components/listener/listenerCard";
 import { toast } from "react-toastify";
-import { ScaleLoader } from "react-spinners";
 import BackToHomeButton from "~/components/backToHomeButton";
 import { useUser } from "@clerk/nextjs";
 import ReactPlayer from "react-player/youtube";
+import Spinner from "~/components/utils/spinner";
 
 interface RoomData extends Room {
   users: User[];
@@ -20,11 +19,7 @@ interface RoomData extends Room {
 
 const Home: NextPage = () => {
   const router = useRouter();
-  const {
-    user,
-    isLoaded: userIsLoaded,
-    isSignedIn: userIsSignedIn,
-  } = useUser();
+  const { user, isLoaded: userIsLoaded } = useUser();
   const { roomId } = router.query;
   const [song, setSong] = useState<Song | undefined>(undefined);
   const [room, setRoom] = useState<RoomData | undefined>(undefined);
@@ -110,9 +105,7 @@ const Home: NextPage = () => {
       </Head>
       <main className="flex min-h-screen flex-col items-center justify-start overflow-y-auto bg-slate-800 py-4 sm:flex-row sm:items-start sm:justify-center">
         {roomLoading || !userIsLoaded ? (
-          <div className="flex min-h-screen min-w-full items-center justify-center">
-            <ScaleLoader color={"#cbd5e1"} />
-          </div>
+          <Spinner />
         ) : (
           room && (
             <>
