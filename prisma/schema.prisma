@@ -29,7 +29,6 @@ model Room {
     ownerId String
     users User[]
     playlist Song[] 
-    anonymous Boolean
     chat Boolean
     index Int @default(0)
 }

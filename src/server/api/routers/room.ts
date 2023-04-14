@@ -36,11 +36,6 @@ export const roomRouter = createTRPCRouter({
           where: { id: ctx.userId },
           data: { roomId: input.roomId },
         });
-        if (roomData.anonymous) {
-          user.name = generateUsername("-", 2, 20);
-          user.image = null;
-          user.discriminator = null;
-        }
         void pusherServerClient.trigger(input.roomId, "connected", user);
         roomData.users.push(user);
         if (!roomData) throw Error("Room Not Found");
@@ -66,7 +61,6 @@ export const roomRouter = createTRPCRouter({
   create: protectedProcedure
     .input(
       z.object({
-        anonymous: z.boolean(),
         chat: z.boolean(),
         playlist: z
           .object({
@@ -92,7 +86,6 @@ export const roomRouter = createTRPCRouter({
         data: {
           id: id,
           ownerId: ctx.userId,
-          anonymous: input.anonymous,
           chat: input.chat,
         },
       });

@@ -18,7 +18,6 @@ import BackToHomeButton from "~/components/backToHomeButton";
 import OverlaySpinner from "~/components/utils/overlaySpinner";
 
 const Create: NextPage = () => {
-  const [anonymous, setAnonymous] = useState(false);
   const [chat, setChat] = useState(false);
   const [searchTarget, setSearchTarget] = useState("");
   const [result, setResult] = useState<MusicVideo[]>([]);
@@ -54,13 +53,6 @@ const Create: NextPage = () => {
           Create a Room
         </div>
         <div className="flex w-2/3 flex-row justify-between">
-          Anonymous mode
-          <Switch
-            onChange={() => void setAnonymous(!anonymous)}
-            checked={anonymous}
-          />
-        </div>
-        <div className="flex w-2/3 flex-row justify-between">
           Chat
           <Switch onChange={() => void setChat(!chat)} checked={chat} />
         </div>
@@ -93,7 +85,7 @@ const Create: NextPage = () => {
                 setCreatingRoom(false);
                 return;
               }
-              createRoom({ playlist, anonymous, chat })
+              createRoom({ playlist, chat })
                 .then((roomId) => {
                   setCreatingRoom(false);
                   void router.push(`/room/${roomId}`);
