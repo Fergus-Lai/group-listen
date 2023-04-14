@@ -4,10 +4,9 @@ import { useRouter } from "next/router";
 import { env } from "~/env.mjs";
 import Pusher from "pusher-js";
 import { useEffect, useState } from "react";
-import { type Song } from "~/interfaces/song";
 import Player from "~/components/videoPlayer";
 import { api } from "~/utils/api";
-import { type User, type Room } from "@prisma/client";
+import type { User, Room, Song } from "@prisma/client";
 import ListenerCard from "~/components/listener/listenerCard";
 import { toast } from "react-toastify";
 import { ScaleLoader } from "react-spinners";
@@ -34,12 +33,16 @@ const Home: NextPage = () => {
     api.room.connected.useMutation();
   const { mutateAsync: disconnectRoom } = api.room.disconnected.useMutation();
 
+  const { mutate: songEnded } = api.room.songEnded.useMutation();
+
   const pusher: Pusher = new Pusher(env.NEXT_PUBLIC_PUSHER_APP_KEY, {
     cluster: env.NEXT_PUBLIC_PUSHER_CLUSTER,
   });
 
   const endHandler = () => {
-    return;
+    if (!room || !user) return;
+    if (room.ownerId !== user.id) return;
+    songEnded();
   };
 
   useEffect(() => {
@@ -53,6 +56,8 @@ const Home: NextPage = () => {
     connectRoom({ roomId })
       .then((roomData) => {
         setRoom(roomData);
+        if (roomData.index >= roomData.playlist.length) return;
+        setSong(roomData.playlist[roomData.index]);
         const channel = pusher.subscribe(roomId);
         channel.bind("newSong", ({ newSong }: { newSong: Song }): void => {
           setSong(newSong);
@@ -129,7 +134,7 @@ const Home: NextPage = () => {
                   {song ? (song.title ? song.title : "") : ""}
                 </p>
                 <p className="h-6 text-sm text-slate-300">
-                  {song ? (song.artists ? song.artists : "") : ""}
+                  {song ? (song.artist ? song.artist : "") : ""}
                 </p>
               </div>
               <div className="mx-2 flex h-full w-80 flex-col md:w-1/3">

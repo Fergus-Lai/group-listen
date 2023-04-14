@@ -31,6 +31,7 @@ model Room {
     playlist Song[] 
     anonymous Boolean
     chat Boolean
+    index Int @default(0)
 }
 
 model Song {

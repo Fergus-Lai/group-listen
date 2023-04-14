@@ -6,6 +6,7 @@ import ReRegExp from "reregexp";
 import { pusherServerClient } from "~/server/pusher";
 
 import { generateUsername } from "unique-username-generator";
+import { TRPCError } from "@trpc/server";
 
 const idReReg = new ReRegExp(/[A-Z0-9]{6}/);
 
@@ -21,9 +22,15 @@ export const roomRouter = createTRPCRouter({
         where: { id: input.roomId },
         include: {
           users: true,
+          playlist: true,
         },
       });
       if (!roomData) throw Error("Room Not Found");
+      if (!roomData.playlist)
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Playlist Not Found",
+        });
       if (roomData.users.findIndex((user) => user.id == ctx.userId) === -1) {
         const user = await ctx.prisma.user.update({
           where: { id: ctx.userId },
@@ -119,4 +126,36 @@ export const roomRouter = createTRPCRouter({
       await Promise.all([createSong, linkUser]);
       return id;
     }),
+  songEnded: protectedProcedure.mutation(async ({ ctx }) => {
+    const prismaResult = await ctx.prisma.user.findUnique({
+      where: { id: ctx.userId },
+      include: {
+        room: { select: { playlist: true, ownerId: true, index: true } },
+      },
+    });
+    if (!prismaResult)
+      throw new TRPCError({ code: "NOT_FOUND", message: "User Not Found" });
+    if (!prismaResult.room || !prismaResult.roomId)
+      throw new TRPCError({ code: "NOT_FOUND", message: "User Not In Room" });
+    if (prismaResult.room.ownerId !== ctx.userId)
+      throw new TRPCError({
+        code: "UNAUTHORIZED",
+        message: "User Not The Owner Of The Room",
+      });
+    const index = prismaResult.room.index + 1;
+    if (index >= prismaResult.room.playlist.length) {
+      void pusherServerClient.trigger(prismaResult.roomId, "closed", null);
+      void ctx.prisma.room.delete({ where: { id: prismaResult.roomId } });
+    } else {
+      void pusherServerClient.trigger(
+        prismaResult.roomId,
+        "newSong",
+        prismaResult.room.playlist[index]
+      );
+      void ctx.prisma.room.update({
+        where: { id: prismaResult.roomId },
+        data: { index },
+      });
+    }
+  }),
 });
