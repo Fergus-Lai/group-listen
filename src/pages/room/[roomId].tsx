@@ -2,7 +2,7 @@ import { type NextPage } from "next";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import { env } from "~/env.mjs";
-import Pusher from "pusher-js";
+import Pusher, { type Channel } from "pusher-js";
 import { useEffect, useState } from "react";
 import { api } from "~/utils/api";
 import type { User, Room, Song } from "@prisma/client";
@@ -12,6 +12,7 @@ import BackToHomeButton from "~/components/backToHomeButton";
 import { useUser } from "@clerk/nextjs";
 import ReactPlayer from "react-player/youtube";
 import Spinner from "~/components/utils/spinner";
+import Chat from "~/components/chat";
 
 interface RoomData extends Room {
   users: User[];
@@ -23,6 +24,10 @@ const Home: NextPage = () => {
   const { roomId } = router.query;
   const [song, setSong] = useState<Song | undefined>(undefined);
   const [room, setRoom] = useState<RoomData | undefined>(undefined);
+  const [sendingMessage, setSendingMessage] = useState(false);
+  const [chat, setChat] = useState<{ name: string; message: string }[]>([]);
+  const [pusher, setPusher] = useState<Pusher | undefined>();
+  const [channel, setChannel] = useState<Channel | undefined>();
 
   const { mutateAsync: connectRoom, isLoading: roomLoading } =
     api.room.connected.useMutation();
@@ -30,9 +35,7 @@ const Home: NextPage = () => {
 
   const { mutate: songEnded } = api.room.songEnded.useMutation();
 
-  const pusher: Pusher = new Pusher(env.NEXT_PUBLIC_PUSHER_APP_KEY, {
-    cluster: env.NEXT_PUBLIC_PUSHER_CLUSTER,
-  });
+  const { mutateAsync: sendMessage } = api.room.sendMessage.useMutation();
 
   const endHandler = () => {
     if (!room || !user) return;
@@ -53,27 +56,14 @@ const Home: NextPage = () => {
         setRoom(roomData);
         if (roomData.index >= roomData.playlist.length) return;
         setSong(roomData.playlist[roomData.index]);
-        const channel = pusher.subscribe(roomId);
-        channel.bind("newSong", ({ newSong }: { newSong: Song }): void => {
-          setSong(newSong);
-        });
-        channel.bind("connected", ({ user }: { user: User }): void => {
-          if (!room) return;
-          const tempRoom = room;
-          tempRoom.users.push(user);
-          setRoom(tempRoom);
-        });
-        channel.bind("disconnected", ({ user }: { user: User }): void => {
-          if (!room) return;
-          const tempRoom = room;
-          tempRoom.users = tempRoom.users.filter((x) => x.id !== user.id);
-          setRoom(tempRoom);
-        });
-        channel.bind("closed", () => {
-          if (!toast.isActive("roomCloseToast"))
-            toast.warning("Room Closed", { toastId: "roomCloseToast" });
-          void router.push("/");
-        });
+        if (!pusher) {
+          setPusher(
+            new Pusher(env.NEXT_PUBLIC_PUSHER_APP_KEY, {
+              cluster: env.NEXT_PUBLIC_PUSHER_CLUSTER,
+              forceTLS: false,
+            })
+          );
+        }
       })
       .catch((error: Error) => {
         if (error.message === "Room Not Found") {
@@ -86,7 +76,6 @@ const Home: NextPage = () => {
 
   useEffect(() => {
     return () => {
-      pusher.disconnect();
       if (room) {
         disconnectRoom({
           roomId: room.id,
@@ -95,6 +84,51 @@ const Home: NextPage = () => {
       }
     };
   }, [room]);
+
+  useEffect(() => {
+    if (typeof roomId !== "string" || !pusher) return;
+    setChannel(pusher.subscribe("room-" + roomId));
+    return () => {
+      if (typeof roomId !== "string" || !pusher) return;
+      pusher.unsubscribe("room-" + roomId);
+    };
+  }, [pusher]);
+
+  useEffect(() => {
+    if (!channel) return;
+    channel.bind("new-song", ({ newSong }: { newSong: Song }): void => {
+      setSong(newSong);
+    });
+    channel.bind("user-connected", ({ user }: { user: User }): void => {
+      if (!room) return;
+      const tempRoom = room;
+      tempRoom.users.push(user);
+      setRoom(tempRoom);
+    });
+    channel.bind("user-disconnected", ({ user }: { user: User }): void => {
+      if (!room) return;
+      const tempRoom = room;
+      tempRoom.users = tempRoom.users.filter((x) => x.id !== user.id);
+      setRoom(tempRoom);
+    });
+    channel.bind("closed", () => {
+      if (!toast.isActive("roomCloseToast"))
+        toast.warning("Room Closed", { toastId: "roomCloseToast" });
+      void router.push("/");
+    });
+    channel.bind(
+      "new-message",
+      ({ message }: { message: { name: string; message: string } }) => {
+        const tempChat = chat;
+        tempChat.push(message);
+        setChat(tempChat);
+      }
+    );
+    return () => {
+      if (!channel) return;
+      channel.unbind_all();
+    };
+  }, [channel]);
 
   return (
     <>
@@ -140,6 +174,26 @@ const Home: NextPage = () => {
                 {room.chat && (
                   <>
                     <div className="font-semibold text-white">Chat</div>
+                    <Chat
+                      messages={chat}
+                      disabled={sendingMessage}
+                      submit={(msg) => {
+                        toast.info("Sending Message");
+                        setSendingMessage(true);
+                        sendMessage({ message: msg })
+                          .then(() => {
+                            toast.success("Message Sent");
+                          })
+                          .catch(() => {
+                            toast.error(
+                              "Unknown Error Occurred. Please Try Again"
+                            );
+                          })
+                          .finally(() => {
+                            setSendingMessage(false);
+                          });
+                      }}
+                    />
                   </>
                 )}
               </div>

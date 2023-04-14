@@ -5,7 +5,6 @@ import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import ReRegExp from "reregexp";
 import { pusherServerClient } from "~/server/pusher";
 
-import { generateUsername } from "unique-username-generator";
 import { TRPCError } from "@trpc/server";
 
 const idReReg = new ReRegExp(/[A-Z0-9]{6}/);
@@ -36,7 +35,11 @@ export const roomRouter = createTRPCRouter({
           where: { id: ctx.userId },
           data: { roomId: input.roomId },
         });
-        void pusherServerClient.trigger(input.roomId, "connected", user);
+        void pusherServerClient.trigger(
+          "room-" + input.roomId,
+          "user-connected",
+          user
+        );
         roomData.users.push(user);
         if (!roomData) throw Error("Room Not Found");
       }
@@ -51,11 +54,19 @@ export const roomRouter = createTRPCRouter({
       });
       if (input.owner) {
         await ctx.prisma.room.delete({ where: { id: input.roomId } });
-        await pusherServerClient.trigger(input.roomId, "closed", null);
+        await pusherServerClient.trigger(
+          "room-" + input.roomId,
+          "closed",
+          null
+        );
       } else {
-        await pusherServerClient.trigger(input.roomId, "disconnected", {
-          id: user.id,
-        });
+        await pusherServerClient.trigger(
+          "room-" + input.roomId,
+          "user-disconnected",
+          {
+            id: user.id,
+          }
+        );
       }
     }),
   create: protectedProcedure
@@ -137,12 +148,16 @@ export const roomRouter = createTRPCRouter({
       });
     const index = prismaResult.room.index + 1;
     if (index >= prismaResult.room.playlist.length) {
-      void pusherServerClient.trigger(prismaResult.roomId, "closed", null);
+      void pusherServerClient.trigger(
+        "room-" + prismaResult.roomId,
+        "closed",
+        null
+      );
       void ctx.prisma.room.delete({ where: { id: prismaResult.roomId } });
     } else {
       void pusherServerClient.trigger(
-        prismaResult.roomId,
-        "newSong",
+        "room-" + prismaResult.roomId,
+        "new-song",
         prismaResult.room.playlist[index]
       );
       void ctx.prisma.room.update({
@@ -151,4 +166,26 @@ export const roomRouter = createTRPCRouter({
       });
     }
   }),
+  sendMessage: protectedProcedure
+    .input(z.object({ message: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      const user = await ctx.prisma.user.findUnique({
+        where: { id: ctx.userId },
+      });
+      if (!user)
+        throw new TRPCError({ message: "User Not Found", code: "NOT_FOUND" });
+      if (!user.roomId)
+        throw new TRPCError({
+          message: "User Not In Room",
+          code: "BAD_REQUEST",
+        });
+      await pusherServerClient.trigger("room-" + user.roomId, "new-message", {
+        message: {
+          name: `${user.name}${
+            user.discriminator ? `#${user.discriminator}` : ""
+          }`,
+          message: input.message,
+        },
+      });
+    }),
 });
