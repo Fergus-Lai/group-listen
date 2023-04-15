@@ -13,6 +13,14 @@ import { useUser } from "@clerk/nextjs";
 import ReactPlayer from "react-player/youtube";
 import Spinner from "~/components/utils/spinner";
 import Chat from "~/components/chat";
+import { motion } from "framer-motion";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {
+  faForwardStep,
+  faBackwardStep,
+  faPlay,
+  faPause,
+} from "@fortawesome/free-solid-svg-icons";
 
 interface RoomData extends Room {
   users: User[];
@@ -29,6 +37,7 @@ const Home: NextPage = () => {
   const [pusher, setPusher] = useState<Pusher | undefined>();
   const [channel, setChannel] = useState<Channel | undefined>();
   const [volume, setVolume] = useState(50);
+  const [playing, setPlaying] = useState(true);
 
   const { mutateAsync: connectRoom, isLoading: roomLoading } =
     api.room.connected.useMutation();
@@ -37,6 +46,8 @@ const Home: NextPage = () => {
   const { mutate: songEnded } = api.room.songEnded.useMutation();
 
   const { mutateAsync: sendMessage } = api.room.sendMessage.useMutation();
+
+  const { mutate: songStateChange } = api.room.songStateChange.useMutation();
 
   const endHandler = () => {
     if (!room || !user) return;
@@ -125,6 +136,13 @@ const Home: NextPage = () => {
         setChat(tempChat);
       }
     );
+    channel.bind(
+      "song-state",
+      ({ playing: pusherPlaying }: { playing: boolean }) => {
+        console.log(pusherPlaying);
+        setPlaying(pusherPlaying);
+      }
+    );
     return () => {
       if (!channel) return;
       channel.unbind_all();
@@ -142,7 +160,8 @@ const Home: NextPage = () => {
         {roomLoading || !userIsLoaded ? (
           <Spinner />
         ) : (
-          room && (
+          room &&
+          user && (
             <>
               <div className="mx-2 flex h-full w-80 flex-col gap-2">
                 <div className="flex flex-row gap-2 font-semibold text-white">
@@ -153,11 +172,21 @@ const Home: NextPage = () => {
                   url={`https://www.youtube.com/watch?v=${
                     song ? song.youtubeId : "t6gl5OYUZCE"
                   }`}
-                  playing={true}
+                  playing={playing}
                   volume={volume / 100}
                   width="320px"
                   height="320px"
                   onEnded={endHandler}
+                  onPlay={() => {
+                    if (room.ownerId === user.id)
+                      songStateChange({ playing: true });
+                    else setPlaying(true);
+                  }}
+                  onPause={() => {
+                    if (room.ownerId === user.id)
+                      songStateChange({ playing: false });
+                    else setPlaying(false);
+                  }}
                 />
                 <div className="flex flex-row justify-between">
                   <div className="flex flex-col justify-between">
@@ -185,6 +214,40 @@ const Home: NextPage = () => {
                     ></input>
                   </div>
                 </div>
+                {room.ownerId === user.id && (
+                  <div className="flex h-16 flex-row justify-center gap-2">
+                    <motion.button
+                      whileHover={{ scale: 1.2 }}
+                      whileTap={{ scale: 0.8 }}
+                    >
+                      <FontAwesomeIcon
+                        icon={faBackwardStep}
+                        className="h-8 w-8 text-slate-100"
+                      />
+                    </motion.button>
+                    <motion.button
+                      whileHover={{ scale: 1.2 }}
+                      whileTap={{ scale: 0.8 }}
+                      onClick={() => {
+                        songStateChange({ playing: !playing });
+                      }}
+                    >
+                      <FontAwesomeIcon
+                        icon={playing ? faPause : faPlay}
+                        className="h-8 w-8 text-slate-100"
+                      />
+                    </motion.button>
+                    <motion.button
+                      whileHover={{ scale: 1.2 }}
+                      whileTap={{ scale: 0.8 }}
+                    >
+                      <FontAwesomeIcon
+                        icon={faForwardStep}
+                        className="h-8 w-8 text-slate-100"
+                      />
+                    </motion.button>
+                  </div>
+                )}
               </div>
               <div className="mx-2 flex h-full w-80 flex-col md:w-1/3">
                 <div className="w-full ">

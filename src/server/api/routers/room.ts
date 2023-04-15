@@ -188,4 +188,33 @@ export const roomRouter = createTRPCRouter({
         },
       });
     }),
+  songStateChange: protectedProcedure
+    .input(z.object({ playing: z.boolean() }))
+    .mutation(async ({ ctx, input }) => {
+      const prismaResult = await ctx.prisma.user.findUnique({
+        where: { id: ctx.userId },
+        include: {
+          room: { select: { ownerId: true } },
+        },
+      });
+      if (!prismaResult)
+        throw new TRPCError({ message: "User Not Found", code: "NOT_FOUND" });
+      if (!prismaResult.room || !prismaResult.roomId)
+        throw new TRPCError({
+          message: "User Not In Room",
+          code: "BAD_REQUEST",
+        });
+      if (prismaResult.room.ownerId !== ctx.userId)
+        throw new TRPCError({
+          code: "UNAUTHORIZED",
+          message: "User Not The Owner Of The Room",
+        });
+      void pusherServerClient.trigger(
+        "room-" + prismaResult.roomId,
+        "song-state",
+        {
+          playing: input.playing,
+        }
+      );
+    }),
 });
