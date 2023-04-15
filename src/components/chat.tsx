@@ -1,14 +1,19 @@
-import { useState } from "react";
+import { useState, forwardRef, type ForwardedRef } from "react";
 
-const Chat: React.FC<{
+interface Props {
   messages: { name: string; message: string }[];
   submit: (message: string) => void;
   disabled: boolean;
-}> = ({ messages, submit, disabled }) => {
+}
+
+const Chat: React.ForwardRefRenderFunction<HTMLDivElement, Props> = (
+  { messages, submit, disabled },
+  ref: ForwardedRef<HTMLDivElement>
+) => {
   const [input, setInput] = useState("");
   return (
     <div className="flex h-96 w-full flex-col rounded-lg border border-slate-600">
-      <div className="h-full flex-col overflow-y-scroll px-2 py-2">
+      <div className="h-full flex-col overflow-y-scroll px-2 py-2" ref={ref}>
         {messages.map((message, index) => (
           <div className="flex-col text-slate-100" key={index}>
             <div className="font-bold">{message.name}</div>
@@ -35,4 +40,4 @@ const Chat: React.FC<{
   );
 };
 
-export default Chat;
+export default forwardRef(Chat);

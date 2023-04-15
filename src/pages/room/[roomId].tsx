@@ -3,7 +3,7 @@ import Head from "next/head";
 import { useRouter } from "next/router";
 import { env } from "~/env.mjs";
 import Pusher, { type Channel } from "pusher-js";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { api } from "~/utils/api";
 import type { User, Room, Song } from "@prisma/client";
 import ListenerCard from "~/components/listener/listenerCard";
@@ -39,6 +39,7 @@ const Home: NextPage = () => {
   const [channel, setChannel] = useState<Channel | undefined>();
   const [volume, setVolume] = useState(50);
   const [playing, setPlaying] = useState(true);
+  const chatRef = useRef<HTMLDivElement>(null);
 
   const { mutateAsync: connectRoom, isLoading: roomLoading } =
     api.room.connected.useMutation();
@@ -140,7 +141,6 @@ const Home: NextPage = () => {
     channel.bind(
       "song-state",
       ({ playing: pusherPlaying }: { playing: boolean }) => {
-        console.log(pusherPlaying);
         setPlaying(pusherPlaying);
       }
     );
@@ -149,6 +149,12 @@ const Home: NextPage = () => {
       channel.unbind_all();
     };
   }, [channel]);
+
+  useEffect(() => {
+    if (chatRef.current) {
+      chatRef.current.scrollTop = chatRef.current.scrollHeight;
+    }
+  }, [chatRef.current?.scrollHeight]);
 
   return (
     <>
@@ -225,7 +231,7 @@ const Home: NextPage = () => {
                   </div>
                 </div>
                 {room.ownerId === user.id && (
-                  <div className="flex h-16 flex-row justify-center gap-2">
+                  <div className="flex h-16 flex-row justify-center gap-2 pr-4">
                     <motion.button
                       whileHover={{ scale: 1.2 }}
                       whileTap={{ scale: 0.8 }}
@@ -270,6 +276,7 @@ const Home: NextPage = () => {
                   <>
                     <div className="font-semibold text-white">Chat</div>
                     <Chat
+                      ref={chatRef}
                       messages={chat}
                       disabled={sendingMessage}
                       submit={(msg) => {
