@@ -28,6 +28,7 @@ const Home: NextPage = () => {
   const [chat, setChat] = useState<{ name: string; message: string }[]>([]);
   const [pusher, setPusher] = useState<Pusher | undefined>();
   const [channel, setChannel] = useState<Channel | undefined>();
+  const [volume, setVolume] = useState(50);
 
   const { mutateAsync: connectRoom, isLoading: roomLoading } =
     api.room.connected.useMutation();
@@ -153,16 +154,37 @@ const Home: NextPage = () => {
                     song ? song.youtubeId : "t6gl5OYUZCE"
                   }`}
                   playing={true}
-                  width="300px"
-                  height="300px"
+                  volume={volume / 100}
+                  width="320px"
+                  height="320px"
                   onEnded={endHandler}
                 />
-                <p className="h-6 font-semibold text-white">
-                  {song ? (song.title ? song.title : "") : ""}
-                </p>
-                <p className="h-6 text-sm text-slate-300">
-                  {song ? (song.artist ? song.artist : "") : ""}
-                </p>
+                <div className="flex flex-row justify-between">
+                  <div className="flex flex-col justify-between">
+                    <p className="h-6 font-semibold text-white">
+                      {song ? (song.title ? song.title : "") : ""}
+                    </p>
+                    <p className="h-6 text-sm text-slate-300">
+                      {song ? (song.artist ? song.artist : "") : ""}
+                    </p>
+                  </div>
+                  <div className="flex w-1/3 flex-col gap-2">
+                    <div className="text-right text-slate-100">
+                      Volume: {volume}
+                    </div>
+                    <input
+                      id="volumeSlider"
+                      type="range"
+                      value={volume}
+                      min={0}
+                      max={100}
+                      onChange={(e) => {
+                        setVolume(Number(e.target.value));
+                      }}
+                      className="h-2 w-full cursor-pointer appearance-none rounded-lg bg-slate-700"
+                    ></input>
+                  </div>
+                </div>
               </div>
               <div className="mx-2 flex h-full w-80 flex-col md:w-1/3">
                 <div className="w-full ">
