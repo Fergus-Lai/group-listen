@@ -20,6 +20,7 @@ import {
   faBackwardStep,
   faPlay,
   faPause,
+  faHeart,
 } from "@fortawesome/free-solid-svg-icons";
 
 interface RoomData extends Room {
@@ -197,6 +198,15 @@ const Home: NextPage = () => {
                       {song ? (song.artist ? song.artist : "") : ""}
                     </p>
                   </div>
+                  <motion.button
+                    whileHover={{ scale: 1.2 }}
+                    whileTap={{ scale: 0.8 }}
+                  >
+                    <FontAwesomeIcon
+                      icon={faHeart}
+                      className="h-8 w-8 text-slate-100"
+                    />
+                  </motion.button>
                   <div className="flex w-1/3 flex-col gap-2">
                     <div className="text-right text-slate-100">
                       Volume: {volume}
