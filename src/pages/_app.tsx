@@ -15,7 +15,7 @@ const MyApp: AppType = ({ Component, pageProps }) => {
   const router = useRouter();
   return (
     <ClerkProvider {...pageProps}>
-      <ToastContainer theme="dark" />
+      <ToastContainer theme="dark" position="bottom-right" />
       <AnimatePresence mode="wait">
         <motion.div
           key={router.route}
