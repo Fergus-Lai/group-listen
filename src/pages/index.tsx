@@ -118,7 +118,7 @@ const Home: NextPage = () => {
           </div>
         </div>
 
-        <div className="absolute left-8 bottom-8 flex flex-col gap-4">
+        <div className="absolute left-8 bottom-20 flex flex-col gap-4">
           {user.isSignedIn ? (
             <>
               <NavLink
