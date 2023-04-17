@@ -17,6 +17,7 @@ import BackToHomeButton from "~/components/backToHomeButton";
 import { useClerk, useUser } from "@clerk/nextjs";
 import Icon from "~/components/icon";
 import DeleteModal from "~/components/modal/deleteModal";
+import OverlaySpinner from "~/components/utils/overlaySpinner";
 
 // TODO: Implement Delete Account
 
@@ -53,7 +54,6 @@ const Setting: NextPage = () => {
 
   useEffect(() => {
     if (userDataLoading || !userData) return;
-    console.log(userData.discriminator);
     setDisplayTag(!!userData.discriminator);
   }, [userDataLoading]);
 
@@ -69,27 +69,27 @@ const Setting: NextPage = () => {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <main className="flex min-h-screen flex-col items-center gap-2 bg-slate-800 py-8 text-white">
-        <div className="flex w-2/3 flex-row items-center gap-2 text-left text-xl font-bold">
-          <BackToHomeButton />
-          Setting
-        </div>
-        <AnimatePresence initial={false} mode="sync">
-          {logOutModalOpen && (
-            <LogOutModal
-              closeHandler={() => void setLogOutModalOpen(false)}
-            ></LogOutModal>
-          )}
-        </AnimatePresence>
-        <AnimatePresence initial={false} mode="sync">
-          {deleteModalOpen && (
-            <DeleteModal
-              closeHandler={() => void setDeleteModalOpen(false)}
-              deleteHandler={deleteAccount}
-            ></DeleteModal>
-          )}
-        </AnimatePresence>
-        {isLoaded && (
+        {isLoaded && !userDataLoading ? (
           <>
+            <div className="flex w-2/3 flex-row items-center gap-2 text-left text-xl font-bold">
+              <BackToHomeButton />
+              Setting
+            </div>
+            <AnimatePresence initial={false} mode="sync">
+              {logOutModalOpen && (
+                <LogOutModal
+                  closeHandler={() => void setLogOutModalOpen(false)}
+                ></LogOutModal>
+              )}
+            </AnimatePresence>
+            <AnimatePresence initial={false} mode="sync">
+              {deleteModalOpen && (
+                <DeleteModal
+                  closeHandler={() => void setDeleteModalOpen(false)}
+                  deleteHandler={deleteAccount}
+                ></DeleteModal>
+              )}
+            </AnimatePresence>
             <div className="w-2/3 text-lg font-semibold">Profile</div>
             <div className="mt-2 flex w-2/3 flex-col items-center gap-2 rounded-lg bg-slate-900 p-2 text-slate-300">
               <div className="flex w-full flex-row items-center justify-between text-center">
@@ -138,6 +138,8 @@ const Setting: NextPage = () => {
               </button>
             </div>
           </>
+        ) : (
+          <OverlaySpinner />
         )}
       </main>
     </>
