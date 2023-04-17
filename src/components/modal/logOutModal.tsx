@@ -10,7 +10,10 @@ const LogOutModal: React.FC<props> = (props) => {
   const { signOut } = useClerk();
   return (
     <Backdrop onClick={closeHandler}>
-      <div className="flex h-48 w-1/2 flex-col justify-between rounded-lg bg-slate-800 p-4">
+      <div
+        className="flex h-48 w-1/2 flex-col justify-between rounded-lg bg-slate-800 p-4"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div>
           <div className="text-lg font-semibold text-white">Log Out</div>
           <div>Are you sure you want to log out?</div>

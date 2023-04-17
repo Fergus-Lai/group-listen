@@ -9,8 +9,8 @@ import {
   faArrowLeft,
   faArrowRight,
 } from "@fortawesome/free-solid-svg-icons";
-import { motion } from "framer-motion";
-import { NavLink, NavButton } from "~/components/navButton";
+import { AnimatePresence, motion } from "framer-motion";
+import { NavButton, NavLink, NavSignInButton } from "~/components/nav";
 import { useUser } from "@clerk/nextjs";
 import Tab from "~/components/tab";
 
@@ -19,6 +19,7 @@ import { api } from "~/utils/api";
 import RoomCard from "~/components/roomCard";
 import Spinner from "~/components/utils/spinner";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import InRoomModal from "~/components/modal/inRoomModal";
 
 const Home: NextPage = () => {
   const tabs = ["Newest", "Popular"];
@@ -26,6 +27,7 @@ const Home: NextPage = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [selectedTab, setSelectedTab] = useState<string>(tabs[0] ?? "");
   const [limit, setLimit] = useState(1);
+  const [enterRoomModal, setEnterRoomModal] = useState(false);
 
   const [page, setPage] = useState(0);
   const {
@@ -60,6 +62,9 @@ const Home: NextPage = () => {
   const ref = useRef<HTMLDivElement>(null);
 
   const { mutate: upsertUser } = api.user.upsertUser.useMutation();
+
+  const { data: userInRoom } = api.user.getUserInRoom.useQuery();
+
   useEffect(() => {
     if (user.isLoaded && user.isSignedIn) {
       upsertUser();
@@ -79,6 +84,11 @@ const Home: NextPage = () => {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <main className="flex min-h-screen flex-col items-center overflow-hidden bg-slate-800 ">
+        <AnimatePresence>
+          {enterRoomModal && (
+            <InRoomModal closeHandler={() => void setEnterRoomModal(false)} />
+          )}
+        </AnimatePresence>
         {/* Main */}
         <div
           className="flex h-screen min-h-screen w-full flex-col border border-y-0 border-slate-100 xl:w-2/3"
@@ -127,15 +137,24 @@ const Home: NextPage = () => {
                 icon={faGear}
                 href="/setting"
               />
-              <NavLink
-                menuOpen={menuOpen}
-                closedY={80}
-                icon={faAdd}
-                href="/create"
-              />
+              {userInRoom ? (
+                <NavButton
+                  menuOpen={menuOpen}
+                  closedY={80}
+                  icon={faAdd}
+                  onClick={() => void setEnterRoomModal(true)}
+                />
+              ) : (
+                <NavLink
+                  menuOpen={menuOpen}
+                  closedY={80}
+                  icon={faAdd}
+                  href="/create"
+                />
+              )}
             </>
           ) : (
-            <NavButton
+            <NavSignInButton
               menuOpen={menuOpen}
               closedY={80}
               icon={faRightToBracket}

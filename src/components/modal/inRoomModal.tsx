@@ -2,10 +2,9 @@ import Backdrop from "../utils/backdrop";
 
 interface props {
   closeHandler: () => void;
-  deleteHandler: () => Promise<void>;
 }
 
-const DeleteModal: React.FC<props> = ({ closeHandler, deleteHandler }) => {
+const InRoomModal: React.FC<props> = ({ closeHandler }) => {
   return (
     <Backdrop onClick={closeHandler}>
       <div
@@ -13,21 +12,19 @@ const DeleteModal: React.FC<props> = ({ closeHandler, deleteHandler }) => {
         onClick={(e) => e.stopPropagation()}
       >
         <div>
-          <div className="text-lg font-semibold text-white">Delete Account</div>
-          <div>Are you sure you want to delete your account?</div>
+          <div className="text-lg font-semibold text-white">Entering Room</div>
+          <div>
+            You are currently in a room, please leave the room first to enter or
+            create a new room.
+          </div>
+          <div>Not in a room? Contact support for help.</div>
         </div>
         <div className="relative mb-4 flex flex-row justify-end gap-4 self-end">
           <button
-            className="w-24 hover:underline"
+            className="w-24 rounded-lg bg-slate-600 p-2 hover:opacity-50"
             onClick={() => void closeHandler()}
           >
-            Cancel
-          </button>
-          <button
-            className="w-24 rounded-lg bg-red-500 p-2 hover:opacity-50"
-            onClick={() => void deleteHandler()}
-          >
-            Delete
+            Close
           </button>
         </div>
       </div>
@@ -35,4 +32,4 @@ const DeleteModal: React.FC<props> = ({ closeHandler, deleteHandler }) => {
   );
 };
 
-export default DeleteModal;
+export default InRoomModal;
