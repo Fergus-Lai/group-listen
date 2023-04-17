@@ -1,16 +1,12 @@
 import { type NextPage } from "next";
 import Head from "next/head";
-import Link from "next/link";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {
-  faRightToBracket,
-  faArrowLeft,
-} from "@fortawesome/free-solid-svg-icons";
+import { faRightToBracket } from "@fortawesome/free-solid-svg-icons";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import LogOutModal from "~/components/modal/logOutModal";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence } from "framer-motion";
 import Switch from "react-switch";
 import { api } from "~/utils/api";
 import BackToHomeButton from "~/components/backToHomeButton";
@@ -50,16 +46,16 @@ const Setting: NextPage = () => {
       void router.push("/");
       return;
     }
-  }, [isLoaded]);
+  }, [isLoaded, isSignedIn, router]);
 
   useEffect(() => {
     if (userDataLoading || !userData) return;
     setDisplayTag(!!userData.discriminator);
-  }, [userDataLoading]);
+  }, [userDataLoading, userData]);
 
   useEffect(() => {
     if (!user && isLoaded) void router.push("/");
-  }, [user]);
+  }, [user, isLoaded, router]);
 
   return (
     <>
@@ -111,9 +107,9 @@ const Setting: NextPage = () => {
                       .then(() => {
                         userRefetch()
                           .then(() => setDisableSwitch(false))
-                          .catch((e) => toast.error("Error Occurred"));
+                          .catch(() => toast.error("Error Occurred"));
                       })
-                      .catch((e) => toast.error("Error Occurred"));
+                      .catch(() => toast.error("Error Occurred"));
                     setDisplayTag(!displayTag);
                     return;
                   }}

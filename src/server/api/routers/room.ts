@@ -76,7 +76,7 @@ export const roomRouter = createTRPCRouter({
           }
         );
       }
-      const user = await ctx.prisma.user.update({
+      await ctx.prisma.user.update({
         where: { id: ctx.userId },
         data: { roomId: null },
       });

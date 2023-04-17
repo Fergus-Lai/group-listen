@@ -64,7 +64,7 @@ const Home: NextPage = () => {
     if (user.isLoaded && user.isSignedIn) {
       upsertUser();
     }
-  }, [user.isLoaded]);
+  }, [user.isLoaded, user.isSignedIn, upsertUser]);
 
   useEffect(() => {
     if (!ref.current) return;
