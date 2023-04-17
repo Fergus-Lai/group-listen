@@ -25,12 +25,13 @@ model User {
 
 model Room {
     id String @id
-    createdAt DateTime @default(now())
+    createdAt DateTime @default(now()) 
     ownerId String
     users User[]
     playlist Song[] 
     chat Boolean
     index Int @default(0)
+    @@index(createdAt)
 }
 
 model Song {

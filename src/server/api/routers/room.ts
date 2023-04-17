@@ -1,11 +1,16 @@
 import { z } from "zod";
 
-import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
+import {
+  createTRPCRouter,
+  protectedProcedure,
+  publicProcedure,
+} from "~/server/api/trpc";
 
 import ReRegExp from "reregexp";
 import { pusherServerClient } from "~/server/pusher";
 
 import { TRPCError } from "@trpc/server";
+import { type User } from "@prisma/client";
 
 const idReReg = new ReRegExp(/[A-Z0-9]{6}/);
 
@@ -216,5 +221,34 @@ export const roomRouter = createTRPCRouter({
           playing: input.playing,
         }
       );
+    }),
+  infiniteRoom: publicProcedure
+    .input(
+      z.object({
+        limit: z.number().min(1).max(100),
+        cursor: z.string().nullish(),
+      })
+    )
+    .query(async ({ ctx, input: { limit, cursor } }) => {
+      const rooms = await ctx.prisma.room.findMany({
+        take: limit + 1,
+        cursor: cursor ? { id: cursor } : undefined,
+        orderBy: {
+          createdAt: "desc",
+        },
+        include: {
+          playlist: true,
+          users: true,
+        },
+      });
+      let nextCursor: typeof cursor | undefined = undefined;
+      if (rooms.length > limit) {
+        const nextRoom = rooms.pop(); // return the last item from the array
+        nextCursor = nextRoom?.id;
+      }
+      return {
+        rooms,
+        nextCursor,
+      };
     }),
 });
