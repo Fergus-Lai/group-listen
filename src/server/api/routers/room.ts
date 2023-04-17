@@ -10,7 +10,6 @@ import ReRegExp from "reregexp";
 import { pusherServerClient } from "~/server/pusher";
 
 import { TRPCError } from "@trpc/server";
-import { type User } from "@prisma/client";
 
 const idReReg = new ReRegExp(/[A-Z0-9]{6}/);
 
@@ -53,11 +52,15 @@ export const roomRouter = createTRPCRouter({
   disconnected: protectedProcedure
     .input(z.object({ roomId: z.string(), owner: z.boolean() }))
     .mutation(async ({ ctx, input }) => {
-      const user = await ctx.prisma.user.update({
-        where: { id: ctx.userId },
-        data: { roomId: null },
+      const room = await ctx.prisma.room.findUniqueOrThrow({
+        where: { id: input.roomId },
+        include: {
+          _count: {
+            select: { users: true },
+          },
+        },
       });
-      if (input.owner) {
+      if (room.ownerId === ctx.userId || room._count.users <= 1) {
         await ctx.prisma.room.delete({ where: { id: input.roomId } });
         await pusherServerClient.trigger(
           "room-" + input.roomId,
@@ -69,10 +72,14 @@ export const roomRouter = createTRPCRouter({
           "room-" + input.roomId,
           "user-disconnected",
           {
-            id: user.id,
+            id: ctx.userId,
           }
         );
       }
+      const user = await ctx.prisma.user.update({
+        where: { id: ctx.userId },
+        data: { roomId: null },
+      });
     }),
   create: protectedProcedure
     .input(
