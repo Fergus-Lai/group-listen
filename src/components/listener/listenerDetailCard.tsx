@@ -1,6 +1,8 @@
 import { motion } from "framer-motion";
 import Icon from "../icon";
 import type { User } from "@prisma/client";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faWarning } from "@fortawesome/free-solid-svg-icons";
 
 const ListenerDetailCard: React.FC<{ user: User }> = ({ user }) => {
   return (
@@ -24,9 +26,9 @@ const ListenerDetailCard: React.FC<{ user: User }> = ({ user }) => {
           <motion.button
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
-            className="rounded-lg bg-red-700 p-2 text-white"
+            className="h-6 rounded-lg bg-red-700 px-4 text-white"
           >
-            Report
+            <FontAwesomeIcon icon={faWarning} className="h-4 w-4" />
           </motion.button>
         </div>
       </div>

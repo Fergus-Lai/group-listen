@@ -17,12 +17,11 @@ import Tab from "~/components/tab";
 import { useEffect } from "react";
 import { api } from "~/utils/api";
 import RoomCard from "~/components/roomCard";
-import OverlaySpinner from "~/components/utils/overlaySpinner";
 import Spinner from "~/components/utils/spinner";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 const Home: NextPage = () => {
-  const tabs = ["Main", "Friend"];
+  const tabs = ["Newest", "Popular"];
 
   const [menuOpen, setMenuOpen] = useState(false);
   const [selectedTab, setSelectedTab] = useState<string>(tabs[0] ?? "");
