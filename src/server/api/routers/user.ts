@@ -74,7 +74,7 @@ export const userRouter = createTRPCRouter({
     return "Deleted";
   }),
   getUserInRoom: protectedProcedure.query(async ({ ctx }) => {
-    return !!(
+    return (
       await ctx.prisma.user.findUniqueOrThrow({
         where: { id: ctx.userId },
         select: { roomId: true },

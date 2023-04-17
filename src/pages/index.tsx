@@ -63,7 +63,7 @@ const Home: NextPage = () => {
 
   const { mutate: upsertUser } = api.user.upsertUser.useMutation();
 
-  const { data: userInRoom } = api.user.getUserInRoom.useQuery();
+  const { data: userRoom } = api.user.getUserInRoom.useQuery();
 
   useEffect(() => {
     if (user.isLoaded && user.isSignedIn) {
@@ -101,7 +101,14 @@ const Home: NextPage = () => {
           />
           <div className="flex h-full flex-col">
             {toShow && !roomLoading ? (
-              toShow.map((room) => <RoomCard key={room.id} room={room} />)
+              toShow.map((room) => (
+                <RoomCard
+                  key={room.id}
+                  room={room}
+                  userRoom={userRoom}
+                  onClick={() => void setEnterRoomModal(true)}
+                />
+              ))
             ) : (
               <Spinner />
             )}
@@ -137,7 +144,7 @@ const Home: NextPage = () => {
                 icon={faGear}
                 href="/setting"
               />
-              {userInRoom ? (
+              {userRoom ? (
                 <NavButton
                   menuOpen={menuOpen}
                   closedY={80}
