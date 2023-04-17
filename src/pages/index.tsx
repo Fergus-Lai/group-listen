@@ -35,6 +35,7 @@ const Home: NextPage = () => {
   } = api.room.infiniteRoom.useInfiniteQuery(
     {
       limit: limit,
+      newest: selectedTab === "Newest",
     },
     {
       getNextPageParam: (lastPage) => lastPage.nextCursor,

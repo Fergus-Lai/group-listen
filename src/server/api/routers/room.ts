@@ -234,18 +234,24 @@ export const roomRouter = createTRPCRouter({
       z.object({
         limit: z.number().min(1).max(100),
         cursor: z.string().nullish(),
+        newest: z.boolean(),
       })
     )
-    .query(async ({ ctx, input: { limit, cursor } }) => {
+    .query(async ({ ctx, input: { limit, cursor, newest } }) => {
       const rooms = await ctx.prisma.room.findMany({
         take: limit + 1,
         cursor: cursor ? { id: cursor } : undefined,
-        orderBy: {
-          createdAt: "desc",
-        },
+        orderBy: newest
+          ? {
+              createdAt: "desc",
+            }
+          : { users: { _count: "desc" } },
         include: {
           playlist: true,
           users: true,
+          _count: {
+            select: { users: true },
+          },
         },
       });
       let nextCursor: typeof cursor | undefined = undefined;
