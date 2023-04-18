@@ -89,15 +89,16 @@ const Home: NextPage = () => {
   }, [roomId]);
 
   useEffect(() => {
-    return () => {
-      if (room) {
-        disconnectRoom({
-          roomId: room.id,
-          owner: room.ownerId === (user ? user.id : false),
-        }).catch((e) => console.log(e));
-      }
+    const cleanUp = () => {
+      console.log("hi");
+      disconnectRoom().catch((e) => console.log(e));
     };
-  }, [room]);
+
+    window.addEventListener("beforeunload", cleanUp);
+    return () => {
+      window.removeEventListener("beforeunload", cleanUp);
+    };
+  }, []);
 
   useEffect(() => {
     if (typeof roomId !== "string" || !pusher) return;
@@ -170,8 +171,8 @@ const Home: NextPage = () => {
           room &&
           user && (
             <>
-              <div className="mx-2 flex h-full w-80 flex-col gap-2">
-                <div className="flex flex-row gap-2 font-semibold text-white">
+              <div className="mx-2 flex h-full w-96 flex-col gap-2">
+                <div className="flex w-80 flex-row gap-2 font-semibold text-white">
                   <BackToHomeButton />
                   Room: {roomId}
                 </div>
@@ -181,8 +182,8 @@ const Home: NextPage = () => {
                   }`}
                   playing={playing}
                   volume={volume / 100}
-                  width="320px"
-                  height="320px"
+                  width="384px"
+                  height="384px"
                   onEnded={endHandler}
                   onPlay={() => {
                     if (room.ownerId === user.id)
@@ -196,11 +197,11 @@ const Home: NextPage = () => {
                   }}
                 />
                 <div className="flex flex-row justify-between">
-                  <div className="flex flex-col justify-between">
-                    <p className="h-6 font-semibold text-white">
+                  <div className="flex w-1/3 flex-col justify-between">
+                    <p className="h-6 w-full truncate font-semibold text-white">
                       {song ? (song.title ? song.title : "") : ""}
                     </p>
-                    <p className="h-6 text-sm text-slate-300">
+                    <p className="h-6 text-ellipsis text-sm text-slate-300">
                       {song ? (song.artist ? song.artist : "") : ""}
                     </p>
                   </div>
@@ -231,7 +232,7 @@ const Home: NextPage = () => {
                   </div>
                 </div>
                 {room.ownerId === user.id && (
-                  <div className="flex h-16 flex-row justify-center gap-2 pr-4">
+                  <div className="flex h-16 flex-row justify-center gap-2">
                     <motion.button
                       whileHover={{ scale: 1.2 }}
                       whileTap={{ scale: 0.8 }}

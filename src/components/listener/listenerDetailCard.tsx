@@ -18,9 +18,9 @@ const ListenerDetailCard: React.FC<{ user: User }> = ({ user }) => {
         </div>
         <div className="flex flex-row justify-between">
           <div className="flex flex-col">
-            <div className="truncate text-white">{user.name}</div>
-            <div className="min-h-[1.5rem] text-white">
-              {user.discriminator ?? ""}
+            <div className="truncate">{user.name}</div>
+            <div className="min-h-[1.5rem] text-slate-300">
+              {user.discriminator ? `#${user.discriminator}` : ""}
             </div>
           </div>
           <motion.button

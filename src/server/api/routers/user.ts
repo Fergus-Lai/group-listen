@@ -1,6 +1,6 @@
 import { clerkClient } from "@clerk/nextjs/server";
 import { z } from "zod";
-import { createTRPCRouter, protectedProcedure } from "../trpc";
+import { createTRPCRouter, protectedProcedure, publicProcedure } from "../trpc";
 import { TRPCError } from "@trpc/server";
 import getDiscordUser from "~/server/discordHelper";
 import dayjs from "dayjs";
@@ -73,7 +73,8 @@ export const userRouter = createTRPCRouter({
     await Promise.all([prismaPromise, clerkPromise]);
     return "Deleted";
   }),
-  getUserInRoom: protectedProcedure.query(async ({ ctx }) => {
+  getUserInRoom: publicProcedure.query(async ({ ctx }) => {
+    if (!ctx.userId) return null;
     return (
       await ctx.prisma.user.findUniqueOrThrow({
         where: { id: ctx.userId },

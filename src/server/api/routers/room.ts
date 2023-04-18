@@ -49,38 +49,42 @@ export const roomRouter = createTRPCRouter({
       }
       return roomData;
     }),
-  disconnected: protectedProcedure
-    .input(z.object({ roomId: z.string(), owner: z.boolean() }))
-    .mutation(async ({ ctx, input }) => {
-      const room = await ctx.prisma.room.findUniqueOrThrow({
-        where: { id: input.roomId },
-        include: {
-          _count: {
-            select: { users: true },
+  disconnected: protectedProcedure.mutation(async ({ ctx }) => {
+    const user = await ctx.prisma.user.findUniqueOrThrow({
+      where: { id: ctx.userId },
+      select: {
+        roomId: true,
+        room: {
+          select: {
+            ownerId: true,
+            _count: {
+              select: { users: true },
+            },
           },
         },
-      });
-      if (room.ownerId === ctx.userId || room._count.users <= 1) {
-        await ctx.prisma.room.delete({ where: { id: input.roomId } });
-        await pusherServerClient.trigger(
-          "room-" + input.roomId,
-          "closed",
-          null
-        );
-      } else {
-        await pusherServerClient.trigger(
-          "room-" + input.roomId,
-          "user-disconnected",
-          {
-            id: ctx.userId,
-          }
-        );
-      }
-      await ctx.prisma.user.update({
-        where: { id: ctx.userId },
-        data: { roomId: null },
-      });
-    }),
+      },
+    });
+    console.log("hi");
+    if (!user.room || !user.roomId) throw new Error("User Not In Room");
+    if (user.room.ownerId === ctx.userId || user.room._count.users <= 1) {
+      console.log("deleting room");
+      await ctx.prisma.room.delete({ where: { id: user.roomId } });
+      await pusherServerClient.trigger("room-" + user.roomId, "closed", null);
+    } else {
+      console.log("disconnected");
+      await pusherServerClient.trigger(
+        "room-" + user.roomId,
+        "user-disconnected",
+        {
+          id: ctx.userId,
+        }
+      );
+    }
+    await ctx.prisma.user.update({
+      where: { id: ctx.userId },
+      data: { roomId: null },
+    });
+  }),
   create: protectedProcedure
     .input(
       z.object({

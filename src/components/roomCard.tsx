@@ -22,7 +22,7 @@ const RoomLinkOrButton = ({
 }) => {
   return (
     <>
-      {roomId !== userRoom ? (
+      {!userRoom || roomId === userRoom ? (
         <Link
           href={`/room/${roomId}`}
           className="flex h-40 w-full flex-col items-start justify-evenly border-y border-slate-700 py-2 px-4"
@@ -66,7 +66,7 @@ const RoomCard: React.FC<{
       <div className="flex w-full flex-row justify-between">
         <div>Room Code: {room.id}</div>
         <div>
-          Currently Playing:{" "}
+          Currently Playing:
           {`${room.playlist[room.index]?.title ?? ""}
               -
               ${room.playlist[room.index]?.artist ?? ""}`}
