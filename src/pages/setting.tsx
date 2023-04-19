@@ -65,7 +65,7 @@ const Setting: NextPage = () => {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <main className="flex min-h-screen flex-col items-center gap-2 bg-slate-800 py-8 text-white">
-        {isLoaded && !userDataLoading ? (
+        {isLoaded && !userDataLoading && userData ? (
           <>
             <div className="flex w-2/3 flex-row items-center gap-2 text-left text-xl font-bold">
               <BackToHomeButton />
@@ -94,7 +94,7 @@ const Setting: NextPage = () => {
                   {userData?.discriminator ? `#${userData.discriminator}` : ""}
                 </div>
                 <div className="h-16 w-16 rounded-full">
-                  <Icon src={userData?.image ?? ""} />
+                  <Icon src={userData.image} />
                 </div>
               </div>
               <div className="flex w-full flex-row items-center justify-between">

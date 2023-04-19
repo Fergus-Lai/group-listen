@@ -14,7 +14,7 @@ const ListenerDetailCard: React.FC<{ user: User }> = ({ user }) => {
     >
       <div className="flex w-full flex-col rounded-lg  bg-slate-700 p-2">
         <div className="h-10 w-10">
-          <Icon src={user.image ?? ""} />
+          <Icon src={user.image} />
         </div>
         <div className="flex flex-row justify-between">
           <div className="flex flex-col">

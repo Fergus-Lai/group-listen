@@ -90,7 +90,6 @@ const Home: NextPage = () => {
 
   useEffect(() => {
     const cleanUp = () => {
-      console.log("hi");
       disconnectRoom().catch((e) => console.log(e));
     };
 
@@ -99,6 +98,18 @@ const Home: NextPage = () => {
       window.removeEventListener("beforeunload", cleanUp);
     };
   }, []);
+
+  useEffect(() => {
+    const exitingFunction = () => {
+      disconnectRoom().catch((e) => console.log(e));
+    };
+
+    router.events.on("routeChangeStart", exitingFunction);
+
+    return () => {
+      router.events.off("routeChangeStart", exitingFunction);
+    };
+  }, [router]);
 
   useEffect(() => {
     if (typeof roomId !== "string" || !pusher) return;
@@ -227,7 +238,7 @@ const Home: NextPage = () => {
                       onChange={(e) => {
                         setVolume(Number(e.target.value));
                       }}
-                      className="h-2 w-full cursor-pointer appearance-none rounded-lg bg-slate-700"
+                      className="h-2 w-full cursor-pointer appearance-none rounded-lg bg-slate-700 accent-slate-100"
                     ></input>
                   </div>
                 </div>
