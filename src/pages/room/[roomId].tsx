@@ -39,7 +39,9 @@ const Home: NextPage = () => {
   const [channel, setChannel] = useState<Channel | undefined>();
   const [volume, setVolume] = useState(50);
   const [playing, setPlaying] = useState(true);
+  const [users, setUsers] = useState<User[]>([]);
   const chatRef = useRef<HTMLDivElement>(null);
+  const usersRef = useRef(users);
 
   const { mutateAsync: connectRoom, isLoading: roomLoading } =
     api.room.connected.useMutation();
@@ -57,6 +59,10 @@ const Home: NextPage = () => {
     songEnded();
   };
 
+  const exitingFunction = () => {
+    disconnectRoom().catch((e) => console.log(e));
+  };
+
   useEffect(() => {
     if (!roomId) return;
     if (typeof roomId !== "string" || !/[A-Z0-9]{6}/.test(roomId)) {
@@ -68,6 +74,7 @@ const Home: NextPage = () => {
     connectRoom({ roomId })
       .then((roomData) => {
         setRoom(roomData);
+        setUsers(roomData.users);
         if (roomData.index >= roomData.playlist.length) return;
         setSong(roomData.playlist[roomData.index]);
         if (!pusher) {
@@ -90,52 +97,51 @@ const Home: NextPage = () => {
 
   useEffect(() => {
     const cleanUp = () => {
-      disconnectRoom().catch((e) => console.log(e));
+      exitingFunction();
     };
 
     window.addEventListener("beforeunload", cleanUp);
     return () => {
       window.removeEventListener("beforeunload", cleanUp);
     };
-  }, []);
+  }, [exitingFunction]);
 
   useEffect(() => {
-    const exitingFunction = () => {
-      disconnectRoom().catch((e) => console.log(e));
-    };
-
     router.events.on("routeChangeStart", exitingFunction);
 
     return () => {
       router.events.off("routeChangeStart", exitingFunction);
     };
-  }, [router]);
+  }, [exitingFunction, router]);
 
   useEffect(() => {
-    if (typeof roomId !== "string" || !pusher) return;
+    if (!roomId || typeof roomId !== "string" || !pusher) return;
     setChannel(pusher.subscribe("room-" + roomId));
     return () => {
       if (typeof roomId !== "string" || !pusher) return;
       pusher.unsubscribe("room-" + roomId);
     };
-  }, [pusher]);
+  }, [pusher, roomId]);
 
   useEffect(() => {
     if (!channel) return;
+    channel.unbind_all();
     channel.bind("new-song", ({ newSong }: { newSong: Song }): void => {
       setSong(newSong);
     });
     channel.bind("user-connected", ({ user }: { user: User }): void => {
-      if (!room) return;
-      const tempRoom = room;
-      tempRoom.users.push(user);
-      setRoom(tempRoom);
+      setUsers((prevUsers) => {
+        console.log(prevUsers);
+        if (
+          prevUsers.findIndex((userInList) => userInList.id === user.id) === -1
+        )
+          prevUsers.push(user);
+        console.log("Updating", prevUsers);
+        return prevUsers;
+      });
     });
-    channel.bind("user-disconnected", ({ user }: { user: User }): void => {
-      if (!room) return;
-      const tempRoom = room;
-      tempRoom.users = tempRoom.users.filter((x) => x.id !== user.id);
-      setRoom(tempRoom);
+    channel.bind("user-disconnected", ({ id }: { id: string }): void => {
+      setUsers(users.filter((x) => x.id !== id));
     });
     channel.bind("closed", () => {
       if (!toast.isActive("roomCloseToast"))
@@ -160,13 +166,17 @@ const Home: NextPage = () => {
       if (!channel) return;
       channel.unbind_all();
     };
-  }, [channel]);
+  }, [channel, chat, router, users]);
 
   useEffect(() => {
     if (chatRef.current) {
       chatRef.current.scrollTop = chatRef.current.scrollHeight;
     }
   }, [chatRef.current?.scrollHeight]);
+
+  useEffect(() => {
+    console.log("users:", users);
+  }, [users]);
 
   return (
     <>
@@ -280,7 +290,7 @@ const Home: NextPage = () => {
               <div className="mx-2 flex h-full w-80 flex-col md:w-1/3">
                 <div className="w-full ">
                   <div className="font-semibold text-white">Listeners</div>
-                  {room.users.map((user) => (
+                  {users.map((user) => (
                     <ListenerCard user={user} key={user.id} />
                   ))}
                 </div>

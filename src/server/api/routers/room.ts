@@ -28,6 +28,10 @@ export const roomRouter = createTRPCRouter({
           playlist: true,
         },
       });
+      const user = await ctx.prisma.user.update({
+        where: { id: ctx.userId },
+        data: { roomId: input.roomId },
+      });
       if (!roomData) throw Error("Room Not Found");
       if (!roomData.playlist)
         throw new TRPCError({
@@ -35,14 +39,10 @@ export const roomRouter = createTRPCRouter({
           message: "Playlist Not Found",
         });
       if (roomData.users.findIndex((user) => user.id == ctx.userId) === -1) {
-        const user = await ctx.prisma.user.update({
-          where: { id: ctx.userId },
-          data: { roomId: input.roomId },
-        });
         void pusherServerClient.trigger(
           "room-" + input.roomId,
           "user-connected",
-          user
+          { user }
         );
         roomData.users.push(user);
         if (!roomData) throw Error("Room Not Found");
@@ -64,14 +64,11 @@ export const roomRouter = createTRPCRouter({
         },
       },
     });
-    console.log("hi");
     if (!user.room || !user.roomId) throw new Error("User Not In Room");
     if (user.room.ownerId === ctx.userId || user.room._count.users <= 1) {
-      console.log("deleting room");
       await ctx.prisma.room.delete({ where: { id: user.roomId } });
       await pusherServerClient.trigger("room-" + user.roomId, "closed", null);
     } else {
-      console.log("disconnected");
       await pusherServerClient.trigger(
         "room-" + user.roomId,
         "user-disconnected",
